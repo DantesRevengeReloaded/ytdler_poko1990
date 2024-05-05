@@ -1,0 +1,53 @@
+Poko1990
+Open Source Project
+
+Poko1900 Music Downloader is a Python script that allows you to download music from YouTube and store it on your local machine. The script supports downloading individual songs as well as entire playlists.
+
+pytube and moviepy are the libraries which are not by default installed in python 3.11+ and needed to make it work. Additional edits in pytube may be needed since the regex in cypher file of the library sometimes needs to be configured manually
+
+------------------------------------------------
+The application is strictly for personal use and under no circumstance it must be used if it violates copyright laws.
+------------------------------------------------
+Features
+
+Download individual songs from YouTube
+Download entire playlists from YouTube (using playlist of pytube)
+Download from .txt list of links
+Making the songs to 192 bitrate so it will be easier to listen to music in your car and not having unsupported media file error (at least in my car it works)
+Store downloaded songs data in a local database
+
+-----------------------------------------------
+
+Installation
+
+Clone the repository to your local machine.
+Install the required Python packages by running pip install -r requirements.txt in your terminal.
+Run the script by running python poko_v_1_2.py in your terminal.
+Program is used in Linux but I made some modifications so it can work on windows too (tested on windows 10)
+Soon will follow the script splitted in files so it can be easier to develop.
+
+Usage
+Launch the script by running python poko_v_1_2.py in your terminal.
+Enter the URL of the YouTube video or playlist you want to download.
+Select the download location and click the "Download" button.
+
+Contributing
+Contributions to Poko Music Downloader are welcome! To contribute, please follow these steps:
+
+Fork the repository.
+Create a new branch for your feature or bug fix.
+Make your changes and commit them with descriptive commit messages.
+Push your changes to your fork.
+Submit a pull request to the main repository.
+Credits
+
+Poko Music Downloader was created by PokoMaster The True Master Of Poko and its my first project in the process of learning python language. 
+
+It uses the following open source packages:
+
+pytube
+moviepy
+tkinter
+sqlite3 (for storing historicity of the downloads)
+
+Poko1990 Music Downloader is licensed under the MIT License.
