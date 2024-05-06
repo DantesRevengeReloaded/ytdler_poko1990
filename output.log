@@ -10114,3 +10114,32 @@ database downloaded_songs.db already exists
 updating sum and size of files downloaded
 End of Session
 ----------------------------------------
+Start of Session: Mon May  6 10:59:53 AM EEST 2024
+destination folder:  /home/kotsosthegreatreloaded/Music
+application folder:  /mnt/cf36a2d7-ecf4-46c7-a76a-5defe1ad7659/Poko_Projects/ytdler
+database downloaded_songs.db already exists
+updating sum and size of files downloaded
+Starting to download song...
+MoviePy - Writing audio in /home/kotsosthegreatreloaded/Music/«O δάσκαλος κι εγώ» στο «Μουσικό Κουτί»  Τετάρτη 1703  ΕΡΤ1.mp3
+chunk:   0%|          | 0/4555 [00:00<?, ?it/s, now=None]chunk:   1%|          | 44/4555 [00:00<00:10, 434.35it/s, now=None]chunk:   3%|▎         | 151/4555 [00:00<00:05, 803.52it/s, now=None]chunk:   6%|▌         | 265/4555 [00:00<00:04, 952.88it/s, now=None]chunk:   8%|▊         | 382/4555 [00:00<00:04, 1029.63it/s, now=None]chunk:  11%|█         | 501/4555 [00:00<00:03, 1078.73it/s, now=None]chunk:  13%|█▎        | 612/4555 [00:00<00:03, 1084.62it/s, now=None]chunk:  16%|█▌        | 738/4555 [00:00<00:03, 1138.68it/s, now=None]chunk:  19%|█▊        | 853/4555 [00:00<00:03, 1141.58it/s, now=None]chunk:  21%|██▏       | 969/4555 [00:00<00:03, 1140.90it/s, now=None]chunk:  24%|██▍       | 1095/4555 [00:01<00:02, 1172.54it/s, now=None]chunk:  27%|██▋       | 1213/4555 [00:01<00:02, 1171.12it/s, now=None]chunk:  29%|██▉       | 1331/4555 [00:01<00:02, 1173.65it/s, now=None]chunk:  32%|███▏      | 1449/4555 [00:01<00:02, 1070.75it/s, now=None]chunk:  34%|███▍      | 1558/4555 [00:01<00:02, 1032.77it/s, now=None]chunk:  37%|███▋      | 1679/4555 [00:01<00:02, 1074.34it/s, now=None]chunk:  39%|███▉      | 1788/4555 [00:01<00:02, 1074.18it/s, now=None]chunk:  42%|████▏     | 1903/4555 [00:01<00:02, 1093.03it/s, now=None]chunk:  44%|████▍     | 2019/4555 [00:01<00:02, 1111.56it/s, now=None]chunk:  47%|████▋     | 2139/4555 [00:01<00:02, 1136.89it/s, now=None]chunk:  50%|████▉     | 2260/4555 [00:02<00:01, 1153.57it/s, now=None]chunk:  52%|█████▏    | 2378/4555 [00:02<00:01, 1156.34it/s, now=None]chunk:  55%|█████▍    | 2495/4555 [00:02<00:01, 1157.66it/s, now=None]chunk:  57%|█████▋    | 2615/4555 [00:02<00:01, 1169.30it/s, now=None]chunk:  60%|██████    | 2733/4555 [00:02<00:01, 1162.69it/s, now=None]chunk:  63%|██████▎   | 2850/4555 [00:02<00:01, 1157.96it/s, now=None]chunk:  65%|██████▌   | 2966/4555 [00:02<00:01, 1141.95it/s, now=None]chunk:  68%|██████▊   | 3086/4555 [00:02<00:01, 1157.66it/s, now=None]chunk:  70%|███████   | 3204/4555 [00:02<00:01, 1164.22it/s, now=None]chunk:  73%|███████▎  | 3321/4555 [00:02<00:01, 1139.03it/s, now=None]chunk:  76%|███████▌  | 3443/4555 [00:03<00:00, 1153.32it/s, now=None]chunk:  78%|███████▊  | 3560/4555 [00:03<00:00, 1150.23it/s, now=None]chunk:  81%|████████  | 3676/4555 [00:03<00:00, 1130.55it/s, now=None]chunk:  83%|████████▎ | 3790/4555 [00:03<00:00, 1131.93it/s, now=None]chunk:  86%|████████▌ | 3904/4555 [00:03<00:00, 1123.05it/s, now=None]chunk:  88%|████████▊ | 4020/4555 [00:03<00:00, 1132.99it/s, now=None]chunk:  91%|█████████ | 4134/4555 [00:03<00:00, 1131.23it/s, now=None]chunk:  93%|█████████▎| 4254/4555 [00:03<00:00, 1144.95it/s, now=None]chunk:  96%|█████████▌| 4371/4555 [00:03<00:00, 1149.86it/s, now=None]chunk:  99%|█████████▊| 4488/4555 [00:04<00:00, 1152.48it/s, now=None]                                                                      MoviePy - Done.
+storing data to db...
+MP3 song: «O δάσκαλος κι εγώ» στο «Μουσικό Κουτί» | Τετάρτη 17/03 | ΕΡΤ1 was downloaded successfully in 0.27 minutes!
+[]
+updating sum and size of files downloaded
+End of Session
+----------------------------------------
+Start of Session: Mon May  6 11:06:40 AM EEST 2024
+destination folder:  /home/kotsosthegreatreloaded/Music
+application folder:  /mnt/cf36a2d7-ecf4-46c7-a76a-5defe1ad7659/Poko_Projects/ytdler
+database downloaded_songs.db already exists
+updating sum and size of files downloaded
+Downloading in highest resolution
+storing data to db...
+Video: Odysseas was downloaded successfully in 0.48 minutes!
+updating sum and size of files downloaded
+Downloading in highest resolution
+storing data to db...
+Video: Odysseas was downloaded successfully in 0.28 minutes!
+updating sum and size of files downloaded
+End of Session
+----------------------------------------

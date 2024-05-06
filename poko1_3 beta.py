@@ -11,23 +11,29 @@ import time
 import sqlite3
 from moviepy.editor import AudioFileClip
 import subprocess
+from PIL import Image, ImageTk
 
 # global variables
 version='1.2'
 version_details = f'Poko 1990\nCurrent Version: {version}\nVideo Downloader and Converter\nPython Based and Open Source\nSuitable for Linux OS\nDependancies: pytube, tkinter, os, webbrowser, threading, tkinter.messagebox\nAuthor: Pokomaster\nContact: '
-destination = '/home/kotsosthegreat/Music/YouTubeMusic'
-appfolder = '/mnt/cf36a2d7-ecf4-46c7-a76a-5defe1ad7659/Poko_Projects/ytdler'
+destination = '/home/kotsosthegreatreloaded/Music'
+appfolder = os.path.dirname(os.path.realpath(__file__))
 
+print('destination folder: ', destination)
+print('application folder: ', appfolder)
 
-# Check if the output file exists and delete it if it is bigger than 40MB
+# Check if the output file exists and delete it if it is bigger than 10MB
 if os.path.exists(os.path.join(appfolder, 'output.log')):
     # Check the size of the output file
-    if os.path.getsize(os.path.join(appfolder, 'output.log')) > 40 * 1024 * 1024: # 40MB
+    if os.path.getsize(os.path.join(appfolder, 'output.log')) > 10 * 1024 * 1024: # 10MB
         # Delete the output file
         os.remove(os.path.join(appfolder, 'output.log'))
+        print('removing log file due to excess')
         # Create a new output file
         with open(os.path.join(appfolder, 'output.log'), 'w') as f:
             f.write('')
+            print('New Session')
+            print('----------------------------')
 
 else:
     # Create a new output file
@@ -83,18 +89,19 @@ def get_single_data():
             size = round(os.path.getsize(new_file) / (1024 * 1024), 2) #get size in MB
             download_time = time.strftime('%Y-%m-%d %H:%M:%S')
             urlsource = yt_link
-            store_to_db(wayofdl='Single_Download', title=title, length=length, size=size, download_time=download_time, urlsource=urlsource)
+            store_to_db(wayofdl='Single_Audio_Download', title=title, length=length, size=size, download_time=download_time, urlsource=urlsource)
             end_time = time.time()
             elapsed_time = round((end_time - start_time)/60, 2)
             messagebox.showinfo("Result", f"MP3 song: {title} was downloaded successfully in {elapsed_time} minutes!")
             print(f"MP3 song: {title} was downloaded successfully in {elapsed_time} minutes!")
             print(yt.metadata)
+            update_status_bar()
         except Exception as e:
             messagebox.showerror("Error: ", str(e))
             print(str(e))
     asyncio.run(download_audio())
 
-
+#create a function so you can download songs from a .txt list stored in your computer
 def open_text_list_audio():
     list_of_songs=filedialog.askopenfilename()
     if not list_of_songs:
@@ -141,6 +148,8 @@ def open_text_list_audio():
         print('Error: File not found: ', str(e))
         messagebox.showerror('Error', str(e))
 
+
+#create a function so you can download videos from a .txt list stored in your computer
 def open_text_list_video():
     list_of_songs=filedialog.askopenfilename()
     if not list_of_songs:
@@ -177,6 +186,7 @@ def open_text_list_video():
         elapsed_time = round((end_time - start_time)/60, 2)
         messagebox.showinfo('Result', f"for {ttl_url_list} URLs in txt list {success_count} videos were downloaded succefully in {elapsed_time} minutes!")
         print(f"for {ttl_url_list} URLs in txt list {success_count} videos were downloaded succefully in {elapsed_time} minutes!")
+        update_status_bar()
     except Exception as e:
         print('Error: File not found', str(e))
         messagebox.showerror('Error', str(e))
@@ -201,7 +211,7 @@ async def download_song(yt_link, song_number, playlist_dir, downloaded_songs, to
         size = round(os.path.getsize(newwfile) / (1024 * 1024), 2) #get size in MB
         download_time = time.strftime('%Y-%m-%d %H:%M:%S')
         urlsource = yt_link
-        store_to_db(wayofdl='Playlist_Download', title=title, length=length, size=size, 
+        store_to_db(wayofdl='Playlist_Audio_Download', title=title, length=length, size=size, 
                     download_time=download_time, urlsource=urlsource)
         downloaded_songs.append(song_number)
         print(f'song {song_number} downloaded successfully!')
@@ -238,6 +248,7 @@ def playlist_dl(destination):
             num_of_downloaded_songs = len(downloaded_songs)
             messagebox.showinfo("Result", f"{num_of_downloaded_songs} out of total {total_songs} songs in Playlist were downloaded successfully in {elapsed_time} minutes!")
             print(f"{num_of_downloaded_songs} out of total {total_songs} songs in Playlist were downloaded successfully in {elapsed_time} minutes!")
+            update_status_bar()
         asyncio.run(download_playlist())
     except Exception as e:
         print(f"an error has occurred: {e}")
@@ -265,6 +276,7 @@ def get_video_data():
         elapsed_time = round((end_time - start_time)/60, 2)
         messagebox.showinfo("Result", f"Video: {yt_video.title} was downloaded successfully in {elapsed_time} minutes!")
         print(f"Video: {yt_video.title} was downloaded successfully in {elapsed_time} minutes!")
+        update_status_bar()
     except Exception as e:
         print(f"an error has occurred: {e}")
         print(f"an error has occurred, video with the title: {yt_video.title}, was not downloaded: {e}")
@@ -314,6 +326,7 @@ def get_playlist_video_data():
             elapsed_time = round((end_time - start_time)/60, 2)
             messagebox.showinfo("Result", f"{num_of_downloaded_videos} of total {total_videos} videos in Playlist were downloaded in {elapsed_time} minutes!")
             print(f"{num_of_downloaded_videos} of total {total_videos} videos in Playlist were downloaded in {elapsed_time} minutes!")
+            update_status_bar()
         asyncio.run(download_video_playlist())
     except Exception as e:
         messagebox.showerror("Error", str(e))
@@ -328,7 +341,11 @@ def create_db():
     conn.commit()
     conn.close()
 
-create_db()
+if os.path.exists(os.path.join(appfolder, 'downloaded_songs.db')):
+    print('database downloaded_songs.db already exists')
+else:
+    create_db()
+    print('creating downloaded_songs.db')
 
 def get_total_size():
     conn = sqlite3.connect(os.path.join(appfolder, 'downloaded_songs.db'))
@@ -355,11 +372,12 @@ def update_status_bar():
         total_size = 0
     else:
         total_size = round(get_total_size(), 2)
-    if get_total_songs() <= 1:
+    if get_total_songs() < 1:
         total_songs = 0
     else:
         total_songs = get_total_songs()
     status_bar.config(text=f'Version: {version} | Total Size Of Files Downloaded: {total_size} MB | Total Files Downloaded: {total_songs}')
+    print('updating sum and size of files downloaded')
 
 def store_to_db(wayofdl, title, length, size, download_time, urlsource):
     conn = sqlite3.connect(os.path.join(appfolder, 'downloaded_songs.db'))
@@ -379,20 +397,15 @@ def store_to_db(wayofdl, title, length, size, download_time, urlsource):
 
 root = tk.Tk()
 root.title('Poko 1990')
-screen_width = root.winfo_screenwidth()
-screen_height = root.winfo_screenheight()
-window_width = int(screen_width * 0.8)
-window_height = int(screen_height * 0.8)
-if window_width < 800:
-    window_width = 800
-if window_height < 600:
-    window_height = 600
-x = int((screen_width - window_width) / 2 - window_width / 4)
-y = int((screen_height - window_height) / 2 - window_height / 4)
-root.geometry(f'{window_width}x{window_height}+{x}+{y}')
+root.geometry("840x640")
 root.configure(bg='black', cursor='heart', borderwidth=5, relief='groove', bd=5)
 root.resizable(True, True)
 root.wm_minsize(800, 600) # set the minimum size of the window
+# Load the image and use it as icon
+img = Image.open(f"{appfolder}/pokoapp.ico")
+photo = ImageTk.PhotoImage(img)
+root.iconphoto(False, photo)
+
 
 def on_exit():
     root.destroy()
@@ -401,6 +414,8 @@ def on_exit():
 entry_button_attrs = {'width': 47, 'bg': 'white'}
 dl_button_attrs = {'activeforeground':'white', 'bg' : 'black', 'fg' : 'yellow',
                     'activebackground':'black', 'font' : 'TIMES', 'width': 40}
+clear_button_attrs = {'activeforeground':'white', 'bg' : 'black', 'fg' : 'yellow',
+                    'activebackground':'black', 'font' : 'TIMES', 'width': 20}
 small_label_attrs = {'font': 'Arial 12 bold', 'bg': 'white', 'fg': 'black', 'width': 70, 'relief': 'groove', 'borderwidth': 2, 'height': 1}
 message_attrs = {'font': 'TIMES 10 bold', 'bg': 'black', 'fg': 'yellow'}
 small_message_attrs = {'font': 'TIMES 8 bold', 'bg': 'black', 'fg': 'yellow'}
@@ -413,11 +428,11 @@ def on_exit():
         root.destroy()
 
 # Create a menu bar
-menu_bar = Menu(root, activebackground='gray15', activeforeground='white', **bar_attrs)
+menu_bar = Menu(root, activebackground='gray29', activeforeground='white', **bar_attrs)
 
 # Create a File menu
 file_menu = Menu(menu_bar, tearoff=0)
-file_menu.add_command(label="Download from *.txt file (audio)", command=open_text_list_audio)
+file_menu.add_command(label="Download from *.txt file (audio)", command=open_text_list_audio, )
 file_menu.add_command(label="Download from *.txt file (video)", command=open_text_list_video)
 file_menu.add_separator()
 file_menu.add_command(label="Exit", command=on_exit)
@@ -487,7 +502,7 @@ def clear_entries():
     yt_link_playlist_video_entry.delete(0, 'end')
 
 # Create a button to clear all entry widgets
-clear_button = tk.Button(root, text='Clear All Text In Entries', command=clear_entries, **dl_button_attrs)
+clear_button = tk.Button(root, text='Clear All Text In Entries', command=clear_entries, **clear_button_attrs)
 clear_button.place(relx='0.01', rely='0.3', anchor='w')
 
 # Create a variable to store the selected resolution
@@ -498,11 +513,11 @@ radio_frame = tk.Frame(root, bg='black')
 radio_frame.place(rely='0.8', relx='0.5', anchor='center')
 
 # Create a radio button for highest resolution
-highest_resolution_button = tk.Radiobutton(radio_frame, text='Highest Resolution', variable=resolution, value='highest')
+highest_resolution_button = tk.Radiobutton(radio_frame, text='Highest Resolution', variable=resolution, value='highest', bg='#C2D2F9')
 highest_resolution_button.pack(side='left')
 
 # Create a radio button for normal resolution
-normal_resolution_button = tk.Radiobutton(radio_frame, text='Normal Resolution', variable=resolution, value='normal')
+normal_resolution_button = tk.Radiobutton(radio_frame, text='Normal Resolution', variable=resolution, value='normal', bg='#C2D2F9')
 normal_resolution_button.pack(side='left', padx=10)
 
 # Get the selected resolution

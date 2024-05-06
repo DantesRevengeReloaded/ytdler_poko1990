@@ -16,7 +16,7 @@ from PIL import Image, ImageTk
 # global variables
 version='1.2'
 version_details = f'Poko 1990\nCurrent Version: {version}\nVideo Downloader and Converter\nPython Based and Open Source\nSuitable for Linux OS\nDependancies: pytube, tkinter, os, webbrowser, threading, tkinter.messagebox\nAuthor: Pokomaster\nContact: '
-destination = '/home/kotsosthegreat/Music/YouTubeMusic'
+destination = '/home/kotsosthegreatreloaded/Music'
 appfolder = os.path.dirname(os.path.realpath(__file__))
 
 print('destination folder: ', destination)
