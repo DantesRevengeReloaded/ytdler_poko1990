@@ -1,5 +1,5 @@
 # Import the modules
-import pokodler_ui
+import pokodler_ui_config
 
 
 # Define the main function
@@ -21,7 +21,7 @@ def main():
     #ui.set_database_callback(db_manager.get_videos)
 
     # Start the UI
-    pokodler_ui
+    pokodler_ui_config
 
 # Call the main function
 if __name__ == '__main__':

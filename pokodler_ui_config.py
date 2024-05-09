@@ -130,7 +130,7 @@ single_dl_button.place(rely='0.4', relx='0.5')
 entry_playlist = tk.Entry(root, **entry_button_attrs)
 entry_playlist.place(rely='0.5', relx='0.01')
 button_playlist = tk.Button(root, text='Download Playlist as mp3 Songs', 
-                            command=pokodler_dl_manager.playlist_dl (self, entry_playlist.get()), **dl_button_attrs)
+                            command=pokodler_dl_manager.playlist_dl (entry_playlist.get()), **dl_button_attrs)
 button_playlist.place(rely='0.5', relx='0.5')
 
 # Create a label for the single video entry and button
