@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PokoDler 1990</title>
+  <link rel="icon" href="/static/pokoapp.ico" />
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <section class="card hero-card">
+      <div class="hero-top">
+        <div class="hero-title">
+          <img src="/static/pokoapp.ico" alt="PokoDler icon" class="hero-icon" />
+          <div>
+            <p class="pill pill-soft">Local-first • Private</p>
+            <h1>PokoDler 1990</h1>
+            <p class="sub">Download singles or playlists as audio/video with instant feedback and tidy folders.</p>
+          </div>
+        </div>
+        <a class="icon-link" href="https://www.youtube.com" target="_blank" rel="noreferrer" aria-label="Open YouTube">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21.8 8.001a2.75 2.75 0 0 0-1.94-1.94C18.06 5.7 12 5.7 12 5.7s-6.06 0-7.86.36A2.75 2.75 0 0 0 2.2 8.001 28.4 28.4 0 0 0 1.85 12c-.01 1.34.11 2.68.36 4a2.75 2.75 0 0 0 1.94 1.94c1.8.36 7.85.36 7.85.36s6.06 0 7.86-.36a2.75 2.75 0 0 0 1.94-1.94c.25-1.32.37-2.66.36-4a28.4 28.4 0 0 0-.36-3.999Z" fill="#FF0000"/>
+            <path d="m9.75 9.5 4.5 2.5-4.5 2.5V9.5Z" fill="#fff"/>
+          </svg>
+        </a>
+      </div>
+      <div class="hero-features" id="hero-features">
+        <div class="feature-chip">
+          <span class="feature-title">Audio / Video</span>
+          <span class="feature-copy">MP3 with bitrate select • MP4 at chosen resolution</span>
+        </div>
+        <div class="feature-chip">
+          <span class="feature-title">Playlist smart save</span>
+          <span class="feature-copy">Keeps items in playlist-named folders for clean libraries</span>
+        </div>
+        <div class="feature-chip">
+          <span class="feature-title">Fast & private</span>
+          <span class="feature-copy">Runs locally with instant toasts, summary card, and stats</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="cards-row">
+      <section class="card tone-green">
+        <div class="card-header">
+          <div>
+            <p class="eyebrow">Single</p>
+            <h2>New Download</h2>
+          </div>
+          <div class="badge">One-off</div>
+        </div>
+        <label for="url">YouTube URL</label>
+        <input id="url" type="url" placeholder="https://www.youtube.com/watch?v=..." />
+
+        <div class="row">
+          <label for="kind">Kind</label>
+          <select id="kind">
+            <option value="audio">Audio (mp3)</option>
+            <option value="video">Video</option>
+          </select>
+        </div>
+
+          <div class="row" id="res-row">
+            <label for="resolution">Resolution (video)</label>
+            <select id="resolution">
+              <option value="highest">Highest</option>
+              <option value="720p">720p</option>
+              <option value="480p">480p</option>
+              <option value="360p">360p</option>
+            </select>
+          </div>
+          <div class="row" id="br-row" hidden>
+            <label for="bitrate">Bitrate (audio)</label>
+            <select id="bitrate">
+              <option value="192">192 kbps</option>
+              <option value="256">256 kbps</option>
+              <option value="320">320 kbps</option>
+            </select>
+          </div>
+
+        <button id="submit" class="primary block">Download</button>
+        <div id="status" class="status"></div>
+      </section>
+
+      <section class="card tone-blue">
+        <div class="card-header">
+          <div>
+            <p class="eyebrow">Batch</p>
+            <h2>Playlist Download</h2>
+          </div>
+          <div class="badge ghost">Multi</div>
+        </div>
+        <label for="pl-url">Playlist URL</label>
+        <input id="pl-url" type="url" placeholder="https://www.youtube.com/playlist?list=..." />
+
+        <div class="row">
+          <label for="pl-kind">Kind</label>
+          <select id="pl-kind">
+            <option value="audio">Audio (mp3)</option>
+            <option value="video">Video</option>
+          </select>
+        </div>
+
+          <div class="row" id="pl-res-row">
+            <label for="pl-resolution">Resolution (video)</label>
+            <select id="pl-resolution">
+              <option value="highest">Highest</option>
+              <option value="720p">720p</option>
+              <option value="480p">480p</option>
+              <option value="360p">360p</option>
+            </select>
+          </div>
+          <div class="row" id="pl-br-row" hidden>
+            <label for="pl-bitrate">Bitrate (audio)</label>
+            <select id="pl-bitrate">
+              <option value="192">192 kbps</option>
+              <option value="256">256 kbps</option>
+              <option value="320">320 kbps</option>
+            </select>
+          </div>
+
+        <button id="pl-submit" class="secondary block">Download Playlist</button>
+        <div id="pl-status" class="status"></div>
+      </section>
+    </div>
+
+    <section class="card" id="result" hidden>
+      <div class="card-header">
+        <div>
+          <p class="eyebrow">Result</p>
+          <h2>Download Summary</h2>
+        </div>
+        <div id="result-kind" class="badge ghost"></div>
+      </div>
+      <div id="result-body" class="result-body"></div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <p class="eyebrow">Usage</p>
+          <h2>Stats</h2>
+        </div>
+        <button id="refresh-stats" class="ghost">Refresh</button>
+      </div>
+      <div id="stats" class="stats"></div>
+    </section>
+  </main>
+  <script src="/static/main.js"></script>
+</body>
+</html>

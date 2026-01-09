@@ -1,1 +1,15 @@
 /venv
+
+/downloads
+
+**/__pycache__/
+
+/__pycache__
+
+/tests
+
+/legacy_code
+
+/logs
+
+.env
