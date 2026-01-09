@@ -1,8 +1,0 @@
-[Desktop Entry]
-Name=PokoDler
-Comment=Download singles or playlists as audio/video
-Exec=/mnt/cf36a2d7-ecf4-46c7-a76a-5defe1ad7659/Poko_Projects/ytdler/run.sh
-Icon=/mnt/cf36a2d7-ecf4-46c7-a76a-5defe1ad7659/Poko_Projects/ytdler/app/web/static/pokoapp.ico
-Terminal=false
-Type=Application
-Categories=Utility;AudioVideo;
