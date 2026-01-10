@@ -8,6 +8,7 @@ Features
 - Single downloads (audio or video) saved under `downloads/singledls/`.
 - Playlist downloads saved under `downloads/playlists/{playlist_name}/` (playlist title sanitized).
 - Audio: mp3 with selectable bitrate (192/256/320 kbps). Video: choose resolution (highest/720p/480p/360p).
+- Spotify playlist/album/artist preview: fetch Spotify metadata and track lists to mirror or share before downloading.
 - Result summary card, toasts, and spinners for clear feedback.
 - Basic stats endpoint/UI: total items and total size (MB) from the local SQLite DB.
 - Logging to `logs/app.log` plus console.
@@ -33,6 +34,9 @@ pip install -r requirements.txt
 POKODLER_APP_NAME=PokoDL Web
 POKODLER_LOG_LEVEL=INFO
 POKODLER_DOWNLOAD_DIR=downloads
+# Spotify client credentials (required for Spotify playlist preview)
+POKODLER_SPOTIFY_CLIENT_ID=your_spotify_client_id
+POKODLER_SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
 ```
 
 Run

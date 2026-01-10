@@ -272,6 +272,7 @@ async function loadStats() {
 $('#submit').addEventListener('click', postDownload);
 $('#pl-submit').addEventListener('click', postPlaylist);
 $('#refresh-stats').addEventListener('click', loadStats);
+$('#sp-submit').addEventListener('click', mirrorSpotifyPlaylist);
 
 function toggleInputs(kindSelectId, resRowId, brRowId) {
   const kind = $(kindSelectId).value;
@@ -295,6 +296,71 @@ toggleInputs('#pl-kind', '#pl-res-row', '#pl-br-row');
 renderStatus();
 
 loadStats();
+
+async function mirrorSpotifyPlaylist() {
+  const url = $('#sp-url').value.trim();
+  if (!url) {
+    showToast('Enter a Spotify URL.', 'error');
+    return;
+  }
+  setButtonLoading('#sp-submit', true, 'Download Spotify list');
+  $('#sp-status').textContent = 'Fetching Spotify metadata...';
+  try {
+    const res = await fetch('/api/v1/spotify/mirror', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url })
+    });
+    if (!res.ok) {
+      const detail = await res.text();
+      throw new Error(detail || 'Spotify mirror failed');
+    }
+    const data = await res.json();
+    renderSpotifyResult(data, false);
+    const count = data.track_count || 0;
+    const done = data.downloaded || 0;
+    $('#sp-status').textContent = `${data.playlist_title}: finished ${done}/${count} tracks. Manifest saved.`;
+    showToast(`${data.playlist_title}: ${done}/${count} tracks`, 'success');
+  } catch (err) {
+    const msg = err.message || 'Spotify mirror failed';
+    $('#sp-status').textContent = msg;
+    showToast(msg, 'error');
+  }
+  setButtonLoading('#sp-submit', false, 'Download Spotify list');
+}
+
+function renderSpotifyResult(data, showItems = false) {
+  const container = document.querySelector('#sp-result');
+  if (!container) return;
+  const tracks = data.tracks || [];
+  const visible = tracks.slice(0, 8);
+  const listMarkup = visible
+    .map((t, idx) => `
+      <li class="spotify-track">
+        <span class="track-rank">${idx + 1}.</span>
+        <div class="track-meta">
+          <span class="track-title">${t.title || 'Unknown title'}</span>
+          <span class="track-artist">${t.artist || 'Unknown artist'}${t.album ? ' • ' + t.album : ''}</span>
+        </div>
+      </li>`)
+    .join('');
+  const fallback = '<li class="spotify-track muted">No tracks returned.</li>';
+  const typeLabel = data.source_type || 'playlist';
+  const manifestInfo = data.manifest_path ? `<p class="muted">Manifest saved at ${data.manifest_path}</p>` : '';
+
+  container.innerHTML = `
+    <div class="spotify-summary">
+      <div class="spotify-pill">${typeLabel}</div>
+      <div class="spotify-title">${data.playlist_title || 'Spotify collection'}</div>
+      <div class="spotify-owner">${data.owner || ''}</div>
+      ${data.description ? `<p class="spotify-desc">${data.description}</p>` : ''}
+      <div class="spotify-pill muted">${data.track_count || tracks.length || 0} tracks</div>
+      ${manifestInfo}
+    </div>
+    <ol class="spotify-tracks">${listMarkup || fallback}</ol>
+    ${tracks.length > visible.length ? `<p class="muted">Showing first ${visible.length} of ${tracks.length} tracks.</p>` : ''}
+  `;
+}
 
 function revealFeatureChips() {
   const chips = Array.from(document.querySelectorAll('#hero-features .feature-chip'));

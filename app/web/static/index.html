@@ -39,6 +39,10 @@
           <span class="feature-title">Fast & private</span>
           <span class="feature-copy">Runs locally with instant toasts, summary card, and stats</span>
         </div>
+        <div class="feature-chip">
+          <span class="feature-title">Spotify bridge</span>
+          <span class="feature-copy">Preview Spotify playlists before mirroring downloads</span>
+        </div>
       </div>
     </section>
 
@@ -155,6 +159,22 @@
 
         <button id="pl-submit" class="secondary block">Download Playlist</button>
         <div id="pl-status" class="status"></div>
+      </section>
+
+      <section class="card tone-amber spotify-card" id="spotify-card">
+        <div class="card-header">
+          <div>
+            <p class="eyebrow">Import</p>
+            <h2>Spotify Mirror</h2>
+          </div>
+          <div class="badge ghost">New</div>
+        </div>
+        <label for="sp-url">Spotify playlist / album / artist URL</label>
+        <input id="sp-url" type="url" placeholder="https://open.spotify.com/playlist/..." />
+        <p class="helper">We fetch metadata, save a manifest file, then mirror tracks via YouTube search (audio MP3 192 kbps).</p>
+        <button id="sp-submit" class="spotify-btn block">Download Spotify list</button>
+        <div id="sp-status" class="status"></div>
+        <div id="sp-result" class="spotify-result"></div>
       </section>
     </div>
 

@@ -97,6 +97,9 @@ header h1 { margin: 0; font-size: 2.2rem; letter-spacing: -0.02em; }
 .card.tone-green { background: var(--card-grad-green); border-color: rgba(34,197,94,0.3); }
 .card.tone-blue { background: var(--card-grad-blue); border-color: rgba(59,130,246,0.3); }
 .card.tone-amber { background: linear-gradient(145deg, rgba(245,158,11,0.14), rgba(245,158,11,0.08)); border-color: rgba(245,158,11,0.3); }
+.spotify-card { background: linear-gradient(135deg, rgba(59,130,246,0.16), rgba(56,189,248,0.18)); border-color: rgba(59,130,246,0.5); box-shadow: 0 18px 48px rgba(59,130,246,0.32); position: relative; overflow: hidden; }
+.spotify-card::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 20% 30%, rgba(94,234,212,0.28), transparent 40%), radial-gradient(circle at 80% 10%, rgba(14,165,233,0.25), transparent 35%); opacity: 0.7; pointer-events: none; }
+.spotify-card::after { content: ""; position: absolute; inset: 10px; border: 1px solid rgba(255,255,255,0.08); border-radius: calc(var(--radius) - 6px); pointer-events: none; }
 .card-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .eyebrow { text-transform: uppercase; letter-spacing: 0.12em; font-size: 11px; color: var(--muted); margin: 0 0 2px; }
 .badge { padding: 6px 10px; border-radius: 999px; background: linear-gradient(135deg, var(--accent), #16a34a); color: #0b1220; font-weight: 700; font-size: 12px; }
@@ -155,7 +158,7 @@ pre { background: #0f172a; padding: 12px; border-radius: 10px; color: #e2e8f0; w
 .stat-pill { padding: 10px 12px; border-radius: 10px; background: var(--glass); border: 1px solid var(--stroke); }
 .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
 .cards-row { display: flex; gap: 18px; flex-wrap: wrap; align-items: stretch; margin-bottom: 20px; }
-.cards-row > .card { flex: 1 1 48%; min-width: 360px; margin-bottom: 0; }
+.cards-row > .card { flex: 1 1 31%; min-width: 300px; margin-bottom: 0; }
 @media (max-width: 900px) { .cards-row > .card { flex-basis: 100%; min-width: 0; } }
 .block { width: 100%; justify-content: center; }
 button.block { padding: 16px 20px; font-size: 1.05rem; }
@@ -177,6 +180,26 @@ button.block { padding: 16px 20px; font-size: 1.05rem; }
 .toast-error { border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.14); }
 .hidden { display: none !important; }
 .hero-card .card-header { padding: 0; }
+.helper { margin: 8px 0 0; color: var(--muted); font-size: 14px; }
+.spotify-result { margin-top: 10px; display: grid; gap: 10px; }
+.spotify-summary { padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(245,158,11,0.4); background: linear-gradient(135deg, rgba(245,158,11,0.14), rgba(245,158,11,0.06)); box-shadow: inset 0 1px 0 rgba(255,255,255,0.08); }
+.spotify-card .spotify-summary { border-color: rgba(14,165,233,0.4); background: linear-gradient(135deg, rgba(14,165,233,0.16), rgba(14,165,233,0.08)); }
+.spotify-pill { display: inline-flex; padding: 6px 10px; border-radius: 999px; background: rgba(245,158,11,0.16); color: #ffedd5; border: 1px solid rgba(245,158,11,0.4); font-weight: 700; font-size: 12px; }
+.spotify-card .spotify-pill { background: rgba(14,165,233,0.16); border-color: rgba(14,165,233,0.4); color: #e0f2fe; }
+.spotify-title { margin: 6px 0 2px; font-weight: 800; font-size: 1.08rem; letter-spacing: -0.01em; }
+.spotify-owner { color: var(--muted); font-size: 14px; }
+.spotify-desc { margin: 8px 0 0; color: var(--muted); line-height: 1.5; }
+.spotify-tracks { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.spotify-track { display: grid; grid-template-columns: 26px 1fr; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--stroke); background: rgba(0,0,0,0.2); }
+.spotify-track.status { border-color: rgba(14,165,233,0.35); background: rgba(14,165,233,0.08); }
+.track-status { font-size: 12px; color: var(--muted); }
+.track-status.ok { color: #22c55e; }
+.track-status.fail { color: #f87171; }
+.track-rank { color: var(--muted); font-weight: 700; }
+.track-meta { display: grid; gap: 3px; }
+.track-title { font-weight: 700; color: var(--text); }
+.track-artist { color: var(--muted); font-size: 13px; }
+.spotify-btn { background: linear-gradient(135deg, #5eead4, #0ea5e9); color: #0b1220; border: 1px solid rgba(255,255,255,0.18); box-shadow: 0 16px 32px rgba(14,165,233,0.32); }
 .status-panel {
   display: block;
   margin-bottom: 24px;

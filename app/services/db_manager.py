@@ -35,3 +35,38 @@ def get_total_songs() -> float:
         cur.execute("SELECT COALESCE(COUNT(*), 0) FROM downloaded_songs")
         result = cur.fetchone()[0]
         return float(result or 0)
+
+
+def store_spotify_mirror_entry(
+    playlist_title: str,
+    source_type: str,
+    track_title: str,
+    artist: str,
+    query: str,
+    filepath: str | None,
+    status: str,
+    error: str | None,
+    downloaded_at: datetime,
+) -> None:
+    ensure_tables()
+    with get_cursor() as cur:
+        cur.execute(
+            """
+            INSERT INTO spotify_downloads (
+                playlist_title, source_type, track_title, artist, query,
+                filepath, status, error, downloaded_date
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                playlist_title,
+                source_type,
+                track_title,
+                artist,
+                query,
+                filepath,
+                status,
+                error,
+                downloaded_at.isoformat(),
+            ),
+        )

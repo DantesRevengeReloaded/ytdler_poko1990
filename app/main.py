@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 import os
 import logging
 
-from app.api.routes import downloads, stats
+from app.api.routes import downloads, spotify, stats
 from app.core.config import get_settings
 from app.db.session import init_pool
 from app.services.db_manager import init_db
@@ -31,6 +31,7 @@ def on_startup():
 
 
 app.include_router(downloads.router)
+app.include_router(spotify.router)
 app.include_router(stats.router)
 
 base_dir = os.path.dirname(__file__)

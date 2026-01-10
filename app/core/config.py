@@ -1,6 +1,13 @@
 from functools import lru_cache
+from pathlib import Path
+import os
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Load .env explicitly
+from dotenv import load_dotenv
+env_path = Path(__file__).resolve().parents[2] / ".env"
+load_dotenv(env_path)
 
 
 class Settings(BaseSettings):
@@ -15,7 +22,10 @@ class Settings(BaseSettings):
     db_password: str = Field("", env="POKODLER_DB_PASSWORD")
     db_sslmode: str = Field("prefer", env="POKODLER_DB_SSLMODE")
 
-    model_config = SettingsConfigDict(env_file=".env", extra='ignore')
+    spotify_client_id: str = Field("", env="POKODLER_SPOTIFY_CLIENT_ID")
+    spotify_client_secret: str = Field("", env="POKODLER_SPOTIFY_CLIENT_SECRET")
+
+    model_config = SettingsConfigDict(env_prefix="POKODLER_", extra='ignore')
 
 
 @lru_cache

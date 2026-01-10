@@ -16,3 +16,20 @@ def ensure_tables() -> None:
             );
             """
         )
+
+        cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS spotify_downloads (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                playlist_title TEXT,
+                source_type TEXT,
+                track_title TEXT,
+                artist TEXT,
+                query TEXT,
+                filepath TEXT,
+                status TEXT,
+                error TEXT,
+                downloaded_date TEXT
+            );
+            """
+        )

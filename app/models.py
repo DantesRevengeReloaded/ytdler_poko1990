@@ -67,3 +67,45 @@ class ProgressSnapshot(BaseModel):
     updated_at: datetime | None = None
     error: str | None = None
     playlist_title: str | None = None
+
+
+class SpotifyPlaylistRequest(BaseModel):
+    url: str = Field(..., description="Spotify playlist/album/artist URL, URI, or raw ID")
+
+
+class SpotifyTrack(BaseModel):
+    title: str
+    artist: str
+    album: str | None = None
+    spotify_url: str | None = None
+
+
+class SpotifyPlaylistResponse(BaseModel):
+    playlist_title: str
+    description: str | None = None
+    owner: str | None = None
+    track_count: int
+    tracks: list[SpotifyTrack]
+    source_type: str = Field("playlist", description="playlist | album | artist")
+
+
+class SpotifyMirrorRequest(BaseModel):
+    url: str = Field(..., description="Spotify playlist/album/artist URL or URI")
+    bitrate: str | None = Field("192", description="MP3 bitrate for mirrored downloads")
+
+
+class SpotifyMirrorItem(BaseModel):
+    title: str
+    artist: str
+    query: str
+    filepath: str | None = None
+    status: str
+    error: str | None = None
+
+
+class SpotifyMirrorResponse(BaseModel):
+    playlist_title: str
+    source_type: str
+    track_count: int
+    downloaded: int
+    items: list[SpotifyMirrorItem]
