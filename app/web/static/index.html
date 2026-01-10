@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PokoDler 1990</title>
   <link rel="icon" href="/static/pokoapp.ico" />
-  <link rel="stylesheet" href="/static/styles.css" />
+  <link rel="stylesheet" href="/static/styles.css?v=5" />
 </head>
 <body>
   <main class="shell">
@@ -38,6 +38,38 @@
         <div class="feature-chip">
           <span class="feature-title">Fast & private</span>
           <span class="feature-copy">Runs locally with instant toasts, summary card, and stats</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card status-panel" id="live-status">
+      <div class="status-head">
+        <div>
+          <p class="eyebrow">Live Status</p>
+          <h2>In-flight work</h2>
+        </div>
+        <span id="status-pill" class="pill pill-soft">No work in progress</span>
+      </div>
+      <div class="status-rows">
+        <div class="status-row">
+          <div class="status-row-top">
+            <span class="status-label">Single download</span>
+            <span id="single-status-label" class="muted">Idle</span>
+          </div>
+          <div class="progress">
+            <div id="single-progress" class="progress-fill"></div>
+          </div>
+          <div id="single-progress-text" class="progress-text">No work in progress</div>
+        </div>
+        <div class="status-row">
+          <div class="status-row-top">
+            <span class="status-label">Playlist download</span>
+            <span id="playlist-status-label" class="muted">Idle</span>
+          </div>
+          <div class="progress">
+            <div id="playlist-progress" class="progress-fill"></div>
+          </div>
+          <div id="playlist-progress-text" class="progress-text">No work in progress</div>
         </div>
       </div>
     </section>
@@ -148,6 +180,6 @@
       <div id="stats" class="stats"></div>
     </section>
   </main>
-  <script src="/static/main.js"></script>
+  <script src="/static/main.js?v=5"></script>
 </body>
 </html>
