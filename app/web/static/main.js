@@ -127,13 +127,13 @@ function resetStatus() {
 
 async function postDownload() {
   const url = $('#url').value.trim();
+  if (!isValidUrl(url, ['https://www.youtube.com/', 'https://youtube.com/'])) {
+    showToast('Enter a valid YouTube URL.', 'error');
+    return;
+  }
   const kind = $('#kind').value;
   const resolution = $('#resolution').value;
   const bitrate = $('#bitrate').value;
-  if (!url) {
-    showToast('Enter a YouTube URL.', 'error');
-    return;
-  }
   const jobId = createJobId();
   ensureStatusVisible();
   setStatus('single', {
@@ -184,7 +184,7 @@ async function postDownload() {
       indeterminate: false,
       countLabel: '1/1',
     });
-    clearInputs();
+    clearInputs(['#url']);
     await loadStats();
   } catch (err) {
     showToast(err.message || 'Download failed', 'error');
@@ -204,13 +204,13 @@ async function postDownload() {
 
 async function postPlaylist() {
   const url = $('#pl-url').value.trim();
+  if (!isValidUrl(url, ['https://www.youtube.com/playlist', 'https://youtube.com/playlist'])) {
+    showToast('Enter a valid YouTube playlist URL.', 'error');
+    return;
+  }
   const kind = $('#pl-kind').value;
   const resolution = $('#pl-resolution').value;
   const bitrate = $('#pl-bitrate').value;
-  if (!url) {
-    showToast('Enter a playlist URL.', 'error');
-    return;
-  }
   const jobId = createJobId();
   ensureStatusVisible();
   setStatus('playlist', {
@@ -272,7 +272,7 @@ async function postPlaylist() {
       indeterminate: false,
       countLabel: `${data.count}/${data.count}`,
     });
-    clearInputs();
+    clearInputs(['#pl-url']);
     await loadStats();
   } catch (err) {
     showToast(err.message || 'Playlist failed', 'error');
@@ -334,8 +334,8 @@ loadStats();
 
 async function mirrorSpotifyPlaylist() {
   const url = $('#sp-url').value.trim();
-  if (!url) {
-    showToast('Enter a Spotify URL.', 'error');
+  if (!isValidUrl(url, ['https://open.spotify.com/', 'spotify:'])) {
+    showToast('Enter a valid Spotify URL.', 'error');
     return;
   }
   const jobId = createJobId();
@@ -385,6 +385,7 @@ async function mirrorSpotifyPlaylist() {
     });
     $('#sp-status').textContent = `${data.playlist_title}: finished ${done}/${count} tracks. Summary below.`;
     showToast(`${data.playlist_title}: ${done}/${count} tracks`, 'success');
+    clearInputs(['#sp-url']);
   } catch (err) {
     const msg = err.message || 'Spotify mirror failed';
     $('#sp-status').textContent = msg;
@@ -400,6 +401,11 @@ async function mirrorSpotifyPlaylist() {
   }
   setButtonLoading('#sp-submit', false, 'Download Spotify list');
   stopPolling();
+}
+
+function isValidUrl(value, allowedPrefixes) {
+  if (!value) return false;
+  return allowedPrefixes.some((p) => value.startsWith(p));
 }
 
 function renderSpotifyResult(data) {
@@ -485,9 +491,8 @@ function basename(p) {
   return parts[parts.length - 1];
 }
 
-function clearInputs() {
-  const ids = ['#url', '#pl-url'];
-  ids.forEach(id => {
+function clearInputs(ids) {
+  (ids || []).forEach(id => {
     const el = document.querySelector(id);
     if (el) el.value = '';
   });
