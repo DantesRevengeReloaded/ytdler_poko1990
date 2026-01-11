@@ -252,6 +252,8 @@ def download_playlist(kind: DownloadKind, url: str, resolution: str | None = Non
         raise
 
     entries_meta = info.get("entries", []) or []
+    # Filter out None entries defensively
+    entries_meta = [e for e in entries_meta if e]
     total_entries = len(entries_meta)
     if job_id:
         _set_progress(
@@ -283,17 +285,27 @@ def download_playlist(kind: DownloadKind, url: str, resolution: str | None = Non
 
     items = []
     try:
-        with yt_dlp.YoutubeDL(opts) as ydl:
-            logging.info(f"Downloading playlist items from {url} to {playlist_dir}")
-            info = ydl.extract_info(url, download=True)
-            logging.info(f"Playlist download extraction finished for {url}")
-            entries = info.get("entries", []) or []
-            for idx, entry in enumerate(entries, start=1):
-                if not entry:
-                    continue
-                title = entry.get("title", "unknown")
-                duration_minutes = round((entry.get("duration") or 0) / 60, 2)
-                base_fn = ydl.prepare_filename(entry)
+        entries = entries_meta
+        total_for_progress = total_entries or len(entries)
+        if job_id:
+            _set_progress(
+                job_id,
+                total=total_for_progress or None,
+                message=f"{playlist_title}: Total {total_for_progress or 'unknown'} songs",
+                updated_at=datetime.utcnow(),
+            )
+
+        for idx, entry in enumerate(entries, start=1):
+            if not entry:
+                continue
+            entry_url = entry.get("webpage_url") or entry.get("url") or entry.get("id") or url
+            entry_opts = dict(opts)
+            entry_opts["outtmpl"] = os.path.join(playlist_dir, f"{idx:03d}_%(title)s.%(ext)s")
+            with yt_dlp.YoutubeDL(entry_opts) as ydl:
+                info = ydl.extract_info(entry_url, download=True)
+                title = info.get("title", entry.get("title", "unknown"))
+                duration_minutes = round((info.get("duration") or 0) / 60, 2)
+                base_fn = ydl.prepare_filename(info)
                 filepath = base_fn
                 if kind == "audio" and not filepath.endswith(".mp3"):
                     base, _ = os.path.splitext(base_fn)
@@ -311,10 +323,11 @@ def download_playlist(kind: DownloadKind, url: str, resolution: str | None = Non
                     _set_progress(
                         job_id,
                         phase="downloading",
-                        message=f"{playlist_title}: Total {total_entries or len(entries)} songs {idx}/{total_entries or len(entries)} downloaded",
+                        message=f"{playlist_title}: Total {total_for_progress} songs {idx}/{total_for_progress} downloaded",
                         completed=idx,
-                        total=total_entries or len(entries),
+                        total=total_for_progress or None,
                         updated_at=downloaded_at,
+                        playlist_title=playlist_title,
                     )
                 db_manager.store_song(
                     kind=kind,
@@ -322,7 +335,7 @@ def download_playlist(kind: DownloadKind, url: str, resolution: str | None = Non
                     length_minutes=duration_minutes,
                     size_mb=size_mb,
                     downloaded_at=downloaded_at,
-                    url=entry.get("webpage_url", url),
+                    url=entry_url,
                 )
                 items.append(
                     {
@@ -331,7 +344,7 @@ def download_playlist(kind: DownloadKind, url: str, resolution: str | None = Non
                         "size_mb": size_mb,
                         "duration_minutes": duration_minutes,
                         "downloaded_at": downloaded_at,
-                        "url": entry.get("webpage_url", url),
+                        "url": entry_url,
                         "kind": kind,
                         "job_id": job_id or "",
                     }
@@ -344,7 +357,8 @@ def download_playlist(kind: DownloadKind, url: str, resolution: str | None = Non
     finished_at = datetime.utcnow()
     duration_seconds = (finished_at - started_at).total_seconds()
     if job_id:
-        _finish_progress(job_id, message=f"{playlist_title}: Downloaded {len(items)} songs")
+        total_for_progress = total_entries or len(items)
+        _finish_progress(job_id, message=f"{playlist_title}: Downloaded {len(items)}/{total_for_progress} songs")
     return {"count": len(items), "items": items, "playlist_title": playlist_title, "job_id": job_id or "", "duration_seconds": duration_seconds}
 
 

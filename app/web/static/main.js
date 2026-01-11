@@ -1,11 +1,19 @@
 const $ = (s) => document.querySelector(s);
 
-const defaultStatus = { phase: 'idle', phaseLabel: 'Idle', message: 'No work in progress', progress: 0, indeterminate: false };
-const statusState = {
-  single: { ...defaultStatus },
-  playlist: { ...defaultStatus },
+const defaultStatus = {
+  job: 'idle',
+  jobLabel: 'Idle',
+  phase: 'idle',
+  phaseLabel: 'Idle',
+  message: 'No work in progress',
+  progress: 0,
+  indeterminate: false,
+  countLabel: '—',
 };
-const progressTimers = { single: null, playlist: null };
+let statusState = { ...defaultStatus };
+const jobLabels = { single: 'Single download', playlist: 'Playlist download', spotify: 'Spotify download', idle: 'Idle' };
+let progressTimer = null;
+const POLL_INTERVAL_MS = 500;
 
 function createJobId() {
   if (crypto && crypto.randomUUID) return crypto.randomUUID();
@@ -21,30 +29,34 @@ function ensureStatusVisible() {
 
 function renderStatus() {
   ensureStatusVisible();
-  ['single', 'playlist'].forEach((type) => {
-    const state = statusState[type];
-    const progressEl = document.querySelector(`#${type}-progress`);
-    const textEl = document.querySelector(`#${type}-progress-text`);
-    const labelEl = document.querySelector(`#${type}-status-label`);
-    if (!progressEl || !textEl || !labelEl) return;
-    progressEl.classList.toggle('indeterminate', !!state.indeterminate);
-    progressEl.style.width = state.indeterminate ? '42%' : `${state.progress || 0}%`;
-    textEl.textContent = state.message;
-    labelEl.textContent = state.phaseLabel || state.phase || 'Idle';
-  });
+  const progressEl = document.querySelector('#live-progress');
+  const textEl = document.querySelector('#live-progress-text');
+  const jobEl = document.querySelector('#status-job-label');
+  const phaseEl = document.querySelector('#status-phase-label');
+  const countsEl = document.querySelector('#status-counts');
   const pill = document.querySelector('#status-pill');
-  if (!pill) return;
-  const working = ['single', 'playlist'].some((t) => {
-    const p = statusState[t].phase;
-    return p && !['idle', 'done', 'error'].includes(p);
-  });
-  pill.textContent = working ? 'In progress' : 'No work in progress';
+  if (!progressEl || !textEl || !jobEl || !phaseEl || !countsEl || !pill) return;
+
+  progressEl.classList.toggle('indeterminate', !!statusState.indeterminate);
+  progressEl.style.width = statusState.indeterminate ? '42%' : `${statusState.progress || 0}%`;
+  ['progress-fill--single', 'progress-fill--playlist', 'progress-fill--spotify'].forEach((c) => progressEl.classList.remove(c));
+  if (statusState.job && statusState.job !== 'idle') {
+    const cls = `progress-fill--${statusState.job}`;
+    progressEl.classList.add(cls);
+  }
+  textEl.textContent = statusState.message;
+  jobEl.textContent = statusState.jobLabel || 'Working';
+  phaseEl.textContent = statusState.phaseLabel || statusState.phase || 'Working';
+  countsEl.textContent = statusState.countLabel || '—';
+
+  const working = statusState.job && !['idle', 'done', 'error'].includes(statusState.phase);
+  pill.textContent = working ? `In progress · ${statusState.jobLabel || ''}` : 'Idle';
   pill.classList.toggle('pill-busy', working);
   pill.classList.toggle('pill-soft', !working);
 }
 
-function startPolling(type, jobId) {
-  stopPolling(type);
+function startPolling(job, jobId) {
+  stopPolling();
   const tick = async () => {
     try {
       const res = await fetch(`/api/v1/downloads/progress/${jobId}`);
@@ -56,7 +68,7 @@ function startPolling(type, jobId) {
       const data = await res.json();
       const total = data.total || 0;
       const completed = data.completed || 0;
-      const percent = data.progress_percent != null ? data.progress_percent : total ? (completed / total) * 100 : (statusState[type].progress || 0);
+      const percent = data.progress_percent != null ? data.progress_percent : total ? (completed / total) * 100 : (statusState.progress || 0);
       const label = data.phase === 'done' ? 'Completed' : data.phase === 'error' ? 'Error' : data.phase || 'Working';
       const baseTitle = data.playlist_title || '';
       const counts = total ? `${completed}/${total}` : '';
@@ -64,41 +76,53 @@ function startPolling(type, jobId) {
       if (data.job_type === 'playlist' && total) {
         const titlePart = baseTitle ? `${baseTitle}:` : 'Playlist:';
         message = `${titlePart} Total ${total} songs ${counts} downloaded`;
+      } else if (data.job_type === 'spotify' && total) {
+        const titlePart = baseTitle ? `${baseTitle}:` : 'Spotify:';
+        message = `${titlePart} Total ${total} tracks ${counts} mirrored`;
       } else if (counts) {
         message = `${counts} • ${message}`;
       }
-      setStatus(type, {
+      setStatus(job, {
         phase: data.phase,
         phaseLabel: label,
         message,
         progress: percent,
         indeterminate: !total,
+        countLabel: counts || '—',
       });
       if (data.phase === 'done' || data.phase === 'error') {
-        stopPolling(type);
+        stopPolling();
       }
     } catch (err) {
-      stopPolling(type);
+      stopPolling();
     }
   };
   tick();
-  progressTimers[type] = setInterval(tick, 900);
+  progressTimer = setInterval(tick, POLL_INTERVAL_MS);
 }
 
-function stopPolling(type) {
-  if (progressTimers[type]) {
-    clearInterval(progressTimers[type]);
-    progressTimers[type] = null;
+function stopPolling() {
+  if (progressTimer) {
+    clearInterval(progressTimer);
+    progressTimer = null;
   }
 }
 
-function setStatus(type, patch) {
-  statusState[type] = { ...statusState[type], ...patch };
+function setStatus(job, patch = {}) {
+  const nextJob = job || statusState.job;
+  statusState = {
+    ...statusState,
+    job: nextJob,
+    jobLabel: jobLabels[nextJob] || statusState.jobLabel,
+    ...patch,
+  };
   renderStatus();
 }
 
-function resetStatus(type) {
-  setStatus(type, { phase: 'idle', phaseLabel: 'Idle', message: 'No work in progress', progress: 0, indeterminate: false });
+function resetStatus() {
+  statusState = { ...defaultStatus };
+  renderStatus();
+  stopPolling();
 }
 
 async function postDownload() {
@@ -118,6 +142,7 @@ async function postDownload() {
     message: 'Fetching video details...',
     progress: 12,
     indeterminate: true,
+    countLabel: '—',
   });
   setButtonLoading('#submit', true, 'Download');
   startPolling('single', jobId);
@@ -128,6 +153,7 @@ async function postDownload() {
       message: 'Downloading file...',
       progress: 38,
       indeterminate: true,
+      countLabel: '—',
     });
     const res = await fetch('/api/v1/downloads/', {
       method: 'POST',
@@ -144,6 +170,7 @@ async function postDownload() {
       message: 'Finalizing file...',
       progress: 72,
       indeterminate: true,
+      countLabel: '—',
     });
     const data = await res.json();
     renderResult(data, false);
@@ -155,6 +182,7 @@ async function postDownload() {
       message: `Saved ${fileName}`,
       progress: 100,
       indeterminate: false,
+      countLabel: '1/1',
     });
     clearInputs();
     await loadStats();
@@ -166,9 +194,10 @@ async function postDownload() {
       message: err.message || 'Download failed',
       progress: 0,
       indeterminate: false,
+      countLabel: '—',
     });
   }
-  stopPolling('single');
+  stopPolling();
   setButtonLoading('#submit', false, 'Download');
   $('#status').textContent = '';
 }
@@ -190,6 +219,7 @@ async function postPlaylist() {
     message: 'Fetching playlist details...',
     progress: 10,
     indeterminate: true,
+    countLabel: '—',
   });
   setButtonLoading('#pl-submit', true, 'Download Playlist');
   startPolling('playlist', jobId);
@@ -200,6 +230,7 @@ async function postPlaylist() {
       message: 'Downloading playlist items...',
       progress: 34,
       indeterminate: true,
+      countLabel: '—',
     });
     const res = await fetch('/api/v1/downloads/playlist', {
       method: 'POST',
@@ -216,6 +247,7 @@ async function postPlaylist() {
       message: 'Finishing playlist files...',
       progress: 64,
       indeterminate: true,
+      countLabel: '—',
     });
     const data = await res.json();
     const total = data.count || (data.items ? data.items.length : 0) || 0;
@@ -226,6 +258,7 @@ async function postPlaylist() {
         message: `Collected ${total} items, preparing summary...`,
         progress: 82,
         indeterminate: false,
+        countLabel: `${total}/${total}`,
       });
     }
     renderResult(data, true);
@@ -237,6 +270,7 @@ async function postPlaylist() {
       message: `Downloaded ${data.count} items from ${playlistTitle}`,
       progress: 100,
       indeterminate: false,
+      countLabel: `${data.count}/${data.count}`,
     });
     clearInputs();
     await loadStats();
@@ -248,9 +282,10 @@ async function postPlaylist() {
       message: err.message || 'Playlist failed',
       progress: 0,
       indeterminate: false,
+      countLabel: '—',
     });
   }
-  stopPolling('playlist');
+  stopPolling();
   setButtonLoading('#pl-submit', false, 'Download Playlist');
   $('#pl-status').textContent = '';
 }
@@ -303,63 +338,78 @@ async function mirrorSpotifyPlaylist() {
     showToast('Enter a Spotify URL.', 'error');
     return;
   }
+  const jobId = createJobId();
+  // Stop any existing polling from other jobs so the live bar isn't overwritten while Spotify runs.
+  stopPolling();
+  ensureStatusVisible();
   setButtonLoading('#sp-submit', true, 'Download Spotify list');
   $('#sp-status').textContent = 'Fetching Spotify metadata...';
+  setStatus('spotify', {
+    phase: 'metadata',
+    phaseLabel: 'Fetching Spotify',
+    message: 'Gathering playlist data...',
+    progress: 18,
+    indeterminate: true,
+    countLabel: '—',
+  });
+  startPolling('spotify', jobId);
   try {
     const res = await fetch('/api/v1/spotify/mirror', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url })
+      body: JSON.stringify({ url, job_id: jobId })
     });
     if (!res.ok) {
       const detail = await res.text();
       throw new Error(detail || 'Spotify mirror failed');
     }
     const data = await res.json();
-    renderSpotifyResult(data, false);
+    setStatus('spotify', {
+      phase: 'downloading',
+      phaseLabel: 'Downloading',
+      message: 'Collecting tracks via YouTube...',
+      progress: 46,
+      indeterminate: true,
+      countLabel: '—',
+    });
+    renderSpotifyResult(data);
     const count = data.track_count || 0;
     const done = data.downloaded || 0;
-    $('#sp-status').textContent = `${data.playlist_title}: finished ${done}/${count} tracks. Manifest saved.`;
+    setStatus('spotify', {
+      phase: 'done',
+      phaseLabel: 'Completed',
+      message: `${data.playlist_title}: finished ${done}/${count} tracks`,
+      progress: 100,
+      indeterminate: false,
+      countLabel: `${done}/${count || '?'}`,
+    });
+    $('#sp-status').textContent = `${data.playlist_title}: finished ${done}/${count} tracks. Summary below.`;
     showToast(`${data.playlist_title}: ${done}/${count} tracks`, 'success');
   } catch (err) {
     const msg = err.message || 'Spotify mirror failed';
     $('#sp-status').textContent = msg;
+    setStatus('spotify', {
+      phase: 'error',
+      phaseLabel: 'Error',
+      message: msg,
+      progress: 0,
+      indeterminate: false,
+      countLabel: '—',
+    });
     showToast(msg, 'error');
   }
   setButtonLoading('#sp-submit', false, 'Download Spotify list');
+  stopPolling();
 }
 
-function renderSpotifyResult(data, showItems = false) {
-  const container = document.querySelector('#sp-result');
-  if (!container) return;
+function renderSpotifyResult(data) {
   const tracks = data.tracks || [];
-  const visible = tracks.slice(0, 8);
-  const listMarkup = visible
-    .map((t, idx) => `
-      <li class="spotify-track">
-        <span class="track-rank">${idx + 1}.</span>
-        <div class="track-meta">
-          <span class="track-title">${t.title || 'Unknown title'}</span>
-          <span class="track-artist">${t.artist || 'Unknown artist'}${t.album ? ' • ' + t.album : ''}</span>
-        </div>
-      </li>`)
-    .join('');
-  const fallback = '<li class="spotify-track muted">No tracks returned.</li>';
-  const typeLabel = data.source_type || 'playlist';
-  const manifestInfo = data.manifest_path ? `<p class="muted">Manifest saved at ${data.manifest_path}</p>` : '';
-
-  container.innerHTML = `
-    <div class="spotify-summary">
-      <div class="spotify-pill">${typeLabel}</div>
-      <div class="spotify-title">${data.playlist_title || 'Spotify collection'}</div>
-      <div class="spotify-owner">${data.owner || ''}</div>
-      ${data.description ? `<p class="spotify-desc">${data.description}</p>` : ''}
-      <div class="spotify-pill muted">${data.track_count || tracks.length || 0} tracks</div>
-      ${manifestInfo}
-    </div>
-    <ol class="spotify-tracks">${listMarkup || fallback}</ol>
-    ${tracks.length > visible.length ? `<p class="muted">Showing first ${visible.length} of ${tracks.length} tracks.</p>` : ''}
-  `;
+  const total = data.track_count || tracks.length || 0;
+  const done = data.downloaded != null ? data.downloaded : total;
+  renderResult(data, 'spotify');
+  const status = `${data.playlist_title || 'Spotify list'}: finished ${done}/${total || '?'} tracks. Summary below.`;
+  const statusEl = document.querySelector('#sp-status');
+  if (statusEl) statusEl.textContent = status;
 }
 
 function revealFeatureChips() {
@@ -368,23 +418,41 @@ function revealFeatureChips() {
 }
 revealFeatureChips();
 
-function renderResult(data, isPlaylist) {
+function renderResult(data, mode) {
   const body = document.querySelector('#result-body');
   const kindBadge = document.querySelector('#result-kind');
   if (!body || !kindBadge) return;
 
-  if (isPlaylist) {
+  const variant = typeof mode === 'boolean' ? (mode ? 'playlist' : 'single') : (mode || 'single');
+
+  if (variant === 'playlist') {
     const title = data.playlist_title || 'Playlist';
-    kindBadge.textContent = `${data.count} items`;
     const items = data.items || [];
+    const count = data.count != null ? data.count : items.length;
+    kindBadge.textContent = `${count} items`;
     const first = items[0] || {};
     const duration = data.duration_seconds != null ? `${data.duration_seconds.toFixed(1)} s` : 'n/a';
     const rows = [
       { label: 'Playlist', value: title },
       { label: 'First title', value: first.title || 'n/a' },
       { label: 'Kind', value: first.kind || 'playlist' },
-      { label: 'Files', value: data.count },
+      { label: 'Files', value: count },
       { label: 'Downloaded in', value: duration },
+    ];
+    body.innerHTML = rows.map(r => rowMarkup(r.label, r.value)).join('');
+  } else if (variant === 'spotify') {
+    const title = data.playlist_title || 'Spotify collection';
+    const total = data.track_count || (data.tracks ? data.tracks.length : 0) || 0;
+    const done = data.downloaded != null ? data.downloaded : total;
+    const source = data.source_type || 'playlist';
+    const manifest = data.manifest_path || data.manifest || 'n/a';
+    kindBadge.textContent = `${done}/${total || '?'} tracks`;
+    const rows = [
+      { label: 'Collection', value: title },
+      { label: 'Owner', value: data.owner || 'n/a' },
+      { label: 'Source', value: source },
+      { label: 'Tracks saved', value: `${done}/${total || '?'} tracks` },
+      { label: 'Manifest', value: manifest },
     ];
     body.innerHTML = rows.map(r => rowMarkup(r.label, r.value)).join('');
   } else {

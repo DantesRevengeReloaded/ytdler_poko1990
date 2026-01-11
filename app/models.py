@@ -92,6 +92,7 @@ class SpotifyPlaylistResponse(BaseModel):
 class SpotifyMirrorRequest(BaseModel):
     url: str = Field(..., description="Spotify playlist/album/artist URL or URI")
     bitrate: str | None = Field("192", description="MP3 bitrate for mirrored downloads")
+    job_id: str | None = Field(None, description="Client-supplied job id for progress tracking")
 
 
 class SpotifyMirrorItem(BaseModel):
@@ -109,3 +110,4 @@ class SpotifyMirrorResponse(BaseModel):
     track_count: int
     downloaded: int
     items: list[SpotifyMirrorItem]
+    job_id: str

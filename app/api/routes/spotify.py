@@ -30,7 +30,7 @@ async def fetch_spotify_playlist(payload: SpotifyPlaylistRequest):
 async def mirror_spotify_playlist(payload: SpotifyMirrorRequest):
     logging.info(f"Received Spotify mirror request for url={payload.url}")
     try:
-        data = await asyncio.to_thread(spotify_service.mirror_to_youtube, payload.url, payload.bitrate)
+        data = await asyncio.to_thread(spotify_service.mirror_to_youtube, payload.url, payload.bitrate, payload.job_id)
         return SpotifyMirrorResponse(**data)
     except spotify_service.SpotifyConfigError as exc:
         logging.error(f"Spotify config error: {exc}")

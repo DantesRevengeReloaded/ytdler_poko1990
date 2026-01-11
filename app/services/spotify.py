@@ -10,6 +10,7 @@ import requests
 
 from app.core.config import get_settings
 from app.services import db_manager
+from app.services.downloads import _start_progress, _set_progress, _finish_progress
 
 logger = logging.getLogger(__name__)
 
@@ -310,12 +311,13 @@ def _yt_audio_opts(download_dir: str, bitrate: str | None) -> Dict:
     }
 
 
-def mirror_to_youtube(url: str, bitrate: str | None = "192") -> Dict:
+def mirror_to_youtube(url: str, bitrate: str | None = "192", job_id: str | None = None) -> Dict:
     settings = get_settings()
     playlist = get_playlist_details(url)
     playlist_title = playlist.get("playlist_title", "spotify_playlist")
     source_type = playlist.get("source_type", "playlist")
     tracks = playlist.get("tracks", [])
+    total_tracks = len(tracks)
 
     base_dir = os.path.join(settings.download_dir, "spotify_playlists")
     _ensure_dir(base_dir)
@@ -323,6 +325,18 @@ def mirror_to_youtube(url: str, bitrate: str | None = "192") -> Dict:
     folder_name = f"{_sanitize(playlist_title)}_{timestamp}"
     playlist_dir = os.path.join(base_dir, folder_name)
     _ensure_dir(playlist_dir)
+
+    if job_id:
+        _start_progress(job_id, job_type="spotify", message="Preparing Spotify mirror", total=total_tracks or None)
+        _set_progress(
+            job_id,
+            phase="queued",
+            message=f"{playlist_title}: Total {total_tracks} tracks",
+            total=total_tracks or None,
+            completed=0,
+            playlist_title=playlist_title,
+            updated_at=datetime.utcnow(),
+        )
 
     items = []
     downloaded = 0
@@ -379,6 +393,16 @@ def mirror_to_youtube(url: str, bitrate: str | None = "192") -> Dict:
                     }
                 )
                 downloaded += 1
+                if job_id:
+                    _set_progress(
+                        job_id,
+                        phase="downloading",
+                        message=f"{playlist_title}: Total {total_tracks} tracks {idx}/{total_tracks} downloaded",
+                        total=total_tracks or None,
+                        completed=idx,
+                        playlist_title=playlist_title,
+                        updated_at=datetime.utcnow(),
+                    )
         except Exception as exc:  # noqa: BLE001
             db_manager.store_spotify_mirror_entry(
                 playlist_title=playlist_title,
@@ -401,12 +425,29 @@ def mirror_to_youtube(url: str, bitrate: str | None = "192") -> Dict:
                     "error": str(exc),
                 }
             )
+            if job_id:
+                _set_progress(
+                    job_id,
+                    phase="downloading",
+                    message=f"{playlist_title}: Total {total_tracks} tracks {idx}/{total_tracks} processed",
+                    total=total_tracks or None,
+                    completed=idx,
+                    playlist_title=playlist_title,
+                    updated_at=datetime.utcnow(),
+                    error=str(exc),
+                )
+
+    downloaded = sum(1 for item in items if item.get("status") == "downloaded")
+
+    if job_id:
+        _finish_progress(job_id, message=f"{playlist_title}: Downloaded {downloaded}/{total_tracks} tracks")
 
     return {
         "playlist_title": playlist_title,
         "source_type": source_type,
-        "track_count": len(tracks),
+        "track_count": total_tracks,
         "downloaded": downloaded,
         "items": items,
         "manifest_path": manifest_path,
+        "job_id": job_id or "",
     }

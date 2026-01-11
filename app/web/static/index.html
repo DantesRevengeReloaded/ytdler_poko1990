@@ -19,12 +19,22 @@
             <p class="sub">Download singles or playlists as audio/video with instant feedback and tidy folders.</p>
           </div>
         </div>
-        <a class="icon-link" href="https://www.youtube.com" target="_blank" rel="noreferrer" aria-label="Open YouTube">
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M21.8 8.001a2.75 2.75 0 0 0-1.94-1.94C18.06 5.7 12 5.7 12 5.7s-6.06 0-7.86.36A2.75 2.75 0 0 0 2.2 8.001 28.4 28.4 0 0 0 1.85 12c-.01 1.34.11 2.68.36 4a2.75 2.75 0 0 0 1.94 1.94c1.8.36 7.85.36 7.85.36s6.06 0 7.86-.36a2.75 2.75 0 0 0 1.94-1.94c.25-1.32.37-2.66.36-4a28.4 28.4 0 0 0-.36-3.999Z" fill="#FF0000"/>
-            <path d="m9.75 9.5 4.5 2.5-4.5 2.5V9.5Z" fill="#fff"/>
-          </svg>
-        </a>
+        <div class="hero-links">
+          <a class="icon-link" href="https://www.youtube.com" target="_blank" rel="noreferrer" aria-label="Open YouTube">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M21.8 8.001a2.75 2.75 0 0 0-1.94-1.94C18.06 5.7 12 5.7 12 5.7s-6.06 0-7.86.36A2.75 2.75 0 0 0 2.2 8.001 28.4 28.4 0 0 0 1.85 12c-.01 1.34.11 2.68.36 4a2.75 2.75 0 0 0 1.94 1.94c1.8.36 7.85.36 7.85.36s6.06 0 7.86-.36a2.75 2.75 0 0 0 1.94-1.94c.25-1.32.37-2.66.36-4a28.4 28.4 0 0 0-.36-3.999Z" fill="#FF0000"/>
+              <path d="m9.75 9.5 4.5 2.5-4.5 2.5V9.5Z" fill="#fff"/>
+            </svg>
+          </a>
+          <a class="icon-link spotify" href="https://open.spotify.com" target="_blank" rel="noreferrer" aria-label="Open Spotify">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="11" fill="#1DB954" />
+              <path d="M7.6 9.3c3.4-.8 6.3-.5 8.8.9" stroke="#0B0F1A" stroke-width="1.6" stroke-linecap="round"/>
+              <path d="M8 12.3c2.8-.6 5.2-.4 7.3.7" stroke="#0B0F1A" stroke-width="1.4" stroke-linecap="round"/>
+              <path d="M8.4 14.9c2.1-.4 4-.3 5.6.4" stroke="#0B0F1A" stroke-width="1.2" stroke-linecap="round"/>
+            </svg>
+          </a>
+        </div>
       </div>
       <div class="hero-features" id="hero-features">
         <div class="feature-chip">
@@ -52,34 +62,27 @@
           <p class="eyebrow">Live Status</p>
           <h2>In-flight work</h2>
         </div>
-        <span id="status-pill" class="pill pill-soft">No work in progress</span>
+        <span id="status-pill" class="pill pill-soft">Idle</span>
       </div>
-      <div class="status-rows">
-        <div class="status-row">
+      <div class="status-rows single-row">
+        <div class="status-row live-row">
           <div class="status-row-top">
-            <span class="status-label">Single download</span>
-            <span id="single-status-label" class="muted">Idle</span>
+            <div class="status-meta">
+              <span class="status-label" id="status-job-label">Idle</span>
+              <span id="status-phase-label" class="muted">Waiting</span>
+            </div>
+            <span id="status-counts" class="status-counts muted">—</span>
           </div>
-          <div class="progress">
-            <div id="single-progress" class="progress-fill"></div>
+          <div class="progress status-progress">
+            <div id="live-progress" class="progress-fill"></div>
           </div>
-          <div id="single-progress-text" class="progress-text">No work in progress</div>
-        </div>
-        <div class="status-row">
-          <div class="status-row-top">
-            <span class="status-label">Playlist download</span>
-            <span id="playlist-status-label" class="muted">Idle</span>
-          </div>
-          <div class="progress">
-            <div id="playlist-progress" class="progress-fill"></div>
-          </div>
-          <div id="playlist-progress-text" class="progress-text">No work in progress</div>
+          <div id="live-progress-text" class="progress-text">No work in progress</div>
         </div>
       </div>
     </section>
 
     <div class="cards-row">
-      <section class="card tone-green">
+      <section class="card tone-green action-card">
         <div class="card-header">
           <div>
             <p class="eyebrow">Single</p>
@@ -116,11 +119,13 @@
             </select>
           </div>
 
-        <button id="submit" class="primary block">Download</button>
-        <div id="status" class="status"></div>
+        <div class="action-footer">
+          <button id="submit" class="primary block">Download</button>
+          <div id="status" class="status"></div>
+        </div>
       </section>
 
-      <section class="card tone-blue">
+      <section class="card tone-blue action-card">
         <div class="card-header">
           <div>
             <p class="eyebrow">Batch</p>
@@ -157,24 +162,27 @@
             </select>
           </div>
 
-        <button id="pl-submit" class="secondary block">Download Playlist</button>
-        <div id="pl-status" class="status"></div>
+        <div class="action-footer">
+          <button id="pl-submit" class="secondary block">Download Playlist</button>
+          <div id="pl-status" class="status"></div>
+        </div>
       </section>
 
-      <section class="card tone-amber spotify-card" id="spotify-card">
+      <section class="card tone-amber spotify-card action-card" id="spotify-card">
         <div class="card-header">
           <div>
             <p class="eyebrow">Import</p>
-            <h2>Spotify Mirror</h2>
+            <h2>Spotify Retriever</h2>
           </div>
-          <div class="badge ghost">New</div>
+          <div class="badge ghost">Mirror</div>
         </div>
-        <label for="sp-url">Spotify playlist / album / artist URL</label>
+        <label for="sp-url">Playlists / Artists / Albums</label>
         <input id="sp-url" type="url" placeholder="https://open.spotify.com/playlist/..." />
-        <p class="helper">We fetch metadata, save a manifest file, then mirror tracks via YouTube search (audio MP3 192 kbps).</p>
-        <button id="sp-submit" class="spotify-btn block">Download Spotify list</button>
-        <div id="sp-status" class="status"></div>
-        <div id="sp-result" class="spotify-result"></div>
+        <p class="helper">Download Spotify lists using YouTube as a source. Prefixed bitrate option at 192 kbps.</p>
+        <div class="action-footer">
+          <button id="sp-submit" class="spotify-btn block">Download Spotify list</button>
+          <div id="sp-status" class="status"></div>
+        </div>
       </section>
     </div>
 
