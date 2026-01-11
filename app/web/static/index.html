@@ -16,9 +16,6 @@
           <div>
             <p class="pill pill-soft">Local-first • Private</p>
             <h1>Poko1990 Downloader</h1>
-            <div class="hero-subcard">
-              <p class="sub">Download singles or playlists as audio/video with instant feedback, tidy folders, and mirrored Spotify lists.</p>
-            </div>
           </div>
         </div>
         <div class="hero-links">
@@ -88,11 +85,11 @@
         <div class="card-header">
           <div>
             <p class="eyebrow">Single</p>
-            <h2>New Download</h2>
+            <h2>Single Download</h2>
           </div>
           <div class="badge">One-off</div>
         </div>
-        <label for="url">YouTube URL</label>
+        <label for="url">YouTube Single Video URL</label>
         <input id="url" type="url" placeholder="https://www.youtube.com/watch?v=..." />
 
         <div class="row">
@@ -120,7 +117,10 @@
               <option value="320">320 kbps</option>
             </select>
           </div>
-
+          <div class="helper-card">
+            <p class="helper-title">One-off downloads, tidy saves</p>
+            <p class="helper-copy"><strong>Source:</strong> YouTube single links. <strong>Defaults:</strong> Audio at 192 kbps or video at chosen resolution; saves into the singles folder.</p>
+          </div>
         <div class="action-footer">
           <button id="submit" class="primary block">Download</button>
           <div id="status" class="status"></div>
@@ -135,7 +135,7 @@
           </div>
           <div class="badge ghost">Multi</div>
         </div>
-        <label for="pl-url">Playlist URL</label>
+        <label for="pl-url">YouTube Playlist URL</label>
         <input id="pl-url" type="url" placeholder="https://www.youtube.com/playlist?list=..." />
 
         <div class="row">
@@ -163,7 +163,10 @@
               <option value="320">320 kbps</option>
             </select>
           </div>
-
+          <div class="helper-card">
+            <p class="helper-title">Batch playlists with tidy folders</p>
+            <p class="helper-copy"><strong>Source:</strong> YouTube playlist items. <strong>Defaults:</strong> Audio at 192 kbps; video keeps chosen resolution. Files land in playlist-named directories.</p>
+          </div>
         <div class="action-footer">
           <button id="pl-submit" class="secondary block">Download Playlist</button>
           <div id="pl-status" class="status"></div>
@@ -180,7 +183,10 @@
         </div>
         <label for="sp-url">Playlists / Artists / Albums</label>
         <input id="sp-url" type="url" placeholder="https://open.spotify.com/playlist/..." />
-        <p class="helper">Download Spotify lists using YouTube as a source. Prefixed bitrate option at 192 kbps.</p>
+        <div class="helper-card helper-card--spotify">
+          <p class="helper-title">Mirror Spotify lists</p>
+          <p class="helper-copy"><strong>Source:</strong> Uses YouTube to fetch audio. <strong>Default:</strong> Audio saves at 192 kbps (adjust in bitrate menu).</p>
+        </div>
         <div class="action-footer">
           <button id="sp-submit" class="spotify-btn block">Download Spotify list</button>
           <div id="sp-status" class="status"></div>
