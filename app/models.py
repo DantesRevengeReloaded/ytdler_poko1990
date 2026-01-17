@@ -47,12 +47,20 @@ class PlaylistItem(BaseModel):
     kind: str
 
 
+class PlaylistError(BaseModel):
+    title: str | None = None
+    url: str | None = None
+    error: str
+
+
 class PlaylistDownloadResult(BaseModel):
     count: int
     items: list[PlaylistItem]
     playlist_title: str | None = None
     job_id: str
     duration_seconds: float
+    failed: int = 0
+    errors: list[PlaylistError] = Field(default_factory=list)
 
 
 class ProgressSnapshot(BaseModel):

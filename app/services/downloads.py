@@ -284,9 +284,11 @@ def download_playlist(kind: DownloadKind, url: str, resolution: str | None = Non
     opts["outtmpl"] = os.path.join(playlist_dir, "%(playlist_index)03d_%(title)s.%(ext)s")
 
     items = []
+    failures: list[Dict[str, str | None]] = []
     try:
         entries = entries_meta
         total_for_progress = total_entries or len(entries)
+        downloaded = 0
         if job_id:
             _set_progress(
                 job_id,
@@ -299,67 +301,101 @@ def download_playlist(kind: DownloadKind, url: str, resolution: str | None = Non
             if not entry:
                 continue
             entry_url = entry.get("webpage_url") or entry.get("url") or entry.get("id") or url
+            entry_title = entry.get("title") or f"item_{idx}"
             entry_opts = dict(opts)
             entry_opts["outtmpl"] = os.path.join(playlist_dir, f"{idx:03d}_%(title)s.%(ext)s")
-            with yt_dlp.YoutubeDL(entry_opts) as ydl:
-                info = ydl.extract_info(entry_url, download=True)
-                title = info.get("title", entry.get("title", "unknown"))
-                duration_minutes = round((info.get("duration") or 0) / 60, 2)
-                base_fn = ydl.prepare_filename(info)
-                filepath = base_fn
-                if kind == "audio" and not filepath.endswith(".mp3"):
-                    base, _ = os.path.splitext(base_fn)
-                    filepath = base + ".mp3"
-                if not os.path.exists(filepath):
-                    alt = base_fn.rsplit(".", 1)[0]
-                    for ext in (".mp3", ".mp4", ".m4a"):
-                        candidate = alt + ext
-                        if os.path.exists(candidate):
-                            filepath = candidate
-                            break
-                size_mb = round(os.path.getsize(filepath) / (1024 * 1024), 2) if os.path.exists(filepath) else 0
-                downloaded_at = datetime.utcnow()
+            try:
+                with yt_dlp.YoutubeDL(entry_opts) as ydl:
+                    info = ydl.extract_info(entry_url, download=True)
+                    title = info.get("title", entry_title)
+                    duration_minutes = round((info.get("duration") or 0) / 60, 2)
+                    base_fn = ydl.prepare_filename(info)
+                    filepath = base_fn
+                    if kind == "audio" and not filepath.endswith(".mp3"):
+                        base, _ = os.path.splitext(base_fn)
+                        filepath = base + ".mp3"
+                    if not os.path.exists(filepath):
+                        alt = base_fn.rsplit(".", 1)[0]
+                        for ext in (".mp3", ".mp4", ".m4a"):
+                            candidate = alt + ext
+                            if os.path.exists(candidate):
+                                filepath = candidate
+                                break
+                    size_mb = round(os.path.getsize(filepath) / (1024 * 1024), 2) if os.path.exists(filepath) else 0
+                    downloaded_at = datetime.utcnow()
+                    downloaded += 1
+                    if job_id:
+                        _set_progress(
+                            job_id,
+                            phase="downloading",
+                            message=f"{playlist_title}: Downloaded {downloaded}/{total_for_progress} songs",
+                            completed=idx,
+                            total=total_for_progress or None,
+                            updated_at=downloaded_at,
+                            playlist_title=playlist_title,
+                        )
+                    db_manager.store_song(
+                        kind=kind,
+                        title=title,
+                        length_minutes=duration_minutes,
+                        size_mb=size_mb,
+                        downloaded_at=downloaded_at,
+                        url=entry_url,
+                    )
+                    items.append(
+                        {
+                            "title": title,
+                            "filepath": filepath,
+                            "size_mb": size_mb,
+                            "duration_minutes": duration_minutes,
+                            "downloaded_at": downloaded_at,
+                            "url": entry_url,
+                            "kind": kind,
+                            "job_id": job_id or "",
+                        }
+                    )
+            except Exception as exc:
+                error_msg = str(exc)
+                logging.warning(f"Skipping playlist item {idx} ({entry_title}): {error_msg}")
+                failures.append({"title": entry_title, "url": entry_url, "error": error_msg})
                 if job_id:
                     _set_progress(
                         job_id,
                         phase="downloading",
-                        message=f"{playlist_title}: Total {total_for_progress} songs {idx}/{total_for_progress} downloaded",
+                        message=f"{playlist_title}: Downloaded {downloaded}/{total_for_progress} songs (skipped {len(failures)})",
                         completed=idx,
                         total=total_for_progress or None,
-                        updated_at=downloaded_at,
+                        updated_at=datetime.utcnow(),
                         playlist_title=playlist_title,
                     )
-                db_manager.store_song(
-                    kind=kind,
-                    title=title,
-                    length_minutes=duration_minutes,
-                    size_mb=size_mb,
-                    downloaded_at=downloaded_at,
-                    url=entry_url,
-                )
-                items.append(
-                    {
-                        "title": title,
-                        "filepath": filepath,
-                        "size_mb": size_mb,
-                        "duration_minutes": duration_minutes,
-                        "downloaded_at": downloaded_at,
-                        "url": entry_url,
-                        "kind": kind,
-                        "job_id": job_id or "",
-                    }
-                )
+                continue
     except Exception as exc:
         if job_id:
             _finish_progress(job_id, error=str(exc), message="Failed")
         raise
-    logging.info(f"Playlist download completed: {len(items)} items in {playlist_title}")
+    summary_total = total_entries or total_for_progress or (len(items) + len(failures))
+    logging.info(
+        f"Playlist download completed: {len(items)} items in {playlist_title} (skipped {len(failures)})"
+    )
     finished_at = datetime.utcnow()
     duration_seconds = (finished_at - started_at).total_seconds()
     if job_id:
-        total_for_progress = total_entries or len(items)
-        _finish_progress(job_id, message=f"{playlist_title}: Downloaded {len(items)}/{total_for_progress} songs")
-    return {"count": len(items), "items": items, "playlist_title": playlist_title, "job_id": job_id or "", "duration_seconds": duration_seconds}
+        if len(items) == 0 and failures:
+            _finish_progress(job_id, error=f"{playlist_title}: all {summary_total} songs failed")
+        else:
+            summary_message = f"{playlist_title}: Downloaded {len(items)}/{summary_total} songs"
+            if failures:
+                summary_message += f" (skipped {len(failures)})"
+            _finish_progress(job_id, message=summary_message)
+    return {
+        "count": len(items),
+        "items": items,
+        "playlist_title": playlist_title,
+        "job_id": job_id or "",
+        "duration_seconds": duration_seconds,
+        "failed": len(failures),
+        "errors": failures,
+    }
 
 
 async def download_playlist_async(kind: DownloadKind, url: str, resolution: str | None = None, bitrate: str | None = None, job_id: str | None = None) -> Dict:
