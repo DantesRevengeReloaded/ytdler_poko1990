@@ -210,6 +210,8 @@ async def download(kind: DownloadKind, url: str, resolution: str | None = None, 
 def _playlist_opts(download_dir: str, for_video: bool, resolution: str | None, bitrate: str | None) -> Dict:
     opts = _base_opts(download_dir)
     opts["noplaylist"] = False
+    # Allow yt_dlp to skip broken/blocked videos instead of raising.
+    opts["ignoreerrors"] = True
     if for_video:
         fmt = "bestvideo+bestaudio/best" if resolution in (None, "highest") else f"bestvideo[height<={resolution[:-1]}]+bestaudio/best"
         opts.update({"format": fmt})
@@ -304,6 +306,8 @@ def download_playlist(kind: DownloadKind, url: str, resolution: str | None = Non
             entry_title = entry.get("title") or f"item_{idx}"
             entry_opts = dict(opts)
             entry_opts["outtmpl"] = os.path.join(playlist_dir, f"{idx:03d}_%(title)s.%(ext)s")
+            # Avoid ydl aborting the loop on single-item errors.
+            entry_opts["ignoreerrors"] = True
             try:
                 with yt_dlp.YoutubeDL(entry_opts) as ydl:
                     info = ydl.extract_info(entry_url, download=True)
