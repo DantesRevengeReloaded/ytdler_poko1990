@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Poko1990 Downloader</title>
   <link rel="icon" href="/static/pokoapp.ico" />
-  <link rel="stylesheet" href="/static/styles.css?v=5" />
+  <link rel="stylesheet" href="/static/styles.css?v=6" />
 </head>
 <body>
   <main class="shell">
@@ -183,6 +183,20 @@
         </div>
         <label for="sp-url">Playlists / Artists / Albums</label>
         <input id="sp-url" type="url" placeholder="https://open.spotify.com/playlist/..." />
+        <div class="row">
+          <label for="sp-kind">Kind</label>
+          <select id="sp-kind" disabled>
+            <option value="audio" selected>Audio (mp3)</option>
+          </select>
+        </div>
+        <div class="row">
+          <label for="sp-bitrate">Bitrate (audio)</label>
+          <select id="sp-bitrate">
+            <option value="192" selected>192 kbps</option>
+            <option value="256">256 kbps</option>
+            <option value="320">320 kbps</option>
+          </select>
+        </div>
         <div class="helper-card helper-card--spotify">
           <p class="helper-title">Mirror Spotify lists</p>
           <p class="helper-copy"><strong>Source:</strong> Uses YouTube to fetch audio. <strong>Default:</strong> Audio saves at 192 kbps (adjust in bitrate menu).</p>
@@ -216,6 +230,6 @@
       <div id="stats" class="stats"></div>
     </section>
   </main>
-  <script src="/static/main.js?v=5"></script>
+  <script src="/static/main.js?v=6"></script>
 </body>
 </html>

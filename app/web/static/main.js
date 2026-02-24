@@ -338,6 +338,7 @@ async function mirrorSpotifyPlaylist() {
     showToast('Enter a valid Spotify URL.', 'error');
     return;
   }
+  const bitrate = $('#sp-bitrate').value || '192';
   const jobId = createJobId();
   // Stop any existing polling from other jobs so the live bar isn't overwritten while Spotify runs.
   stopPolling();
@@ -357,7 +358,7 @@ async function mirrorSpotifyPlaylist() {
     const res = await fetch('/api/v1/spotify/mirror', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url, job_id: jobId })
+      body: JSON.stringify({ url, bitrate, job_id: jobId })
     });
     if (!res.ok) {
       const detail = await res.text();
