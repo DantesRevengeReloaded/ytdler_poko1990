@@ -1,0 +1,133 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" fill="none">
+  <defs>
+    <linearGradient id="base" x1="960" y1="0" x2="960" y2="1080" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#060A14"/>
+      <stop offset="0.52" stop-color="#08101C"/>
+      <stop offset="1" stop-color="#04070F"/>
+    </linearGradient>
+    <radialGradient id="glowCore" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(980 418) rotate(90) scale(350 620)">
+      <stop stop-color="#6FDBFF" stop-opacity="0.26"/>
+      <stop offset="0.36" stop-color="#48BFD4" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#48BFD4" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowTeal" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(612 380) rotate(30) scale(310 540)">
+      <stop stop-color="#55F0D0" stop-opacity="0.16"/>
+      <stop offset="0.54" stop-color="#2ABBB6" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#2ABBB6" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowIndigo" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1320 330) rotate(145) scale(280 500)">
+      <stop stop-color="#7A76FF" stop-opacity="0.16"/>
+      <stop offset="0.58" stop-color="#5A63D8" stop-opacity="0.08"/>
+      <stop offset="1" stop-color="#5A63D8" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowMagenta" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1140 620) rotate(90) scale(250 420)">
+      <stop stop-color="#D578D0" stop-opacity="0.08"/>
+      <stop offset="0.62" stop-color="#A25EC5" stop-opacity="0.04"/>
+      <stop offset="1" stop-color="#A25EC5" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="fogTop" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1010 150) rotate(90) scale(230 760)">
+      <stop stop-color="#D2EEFF" stop-opacity="0.06"/>
+      <stop offset="1" stop-color="#D2EEFF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="vignette" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(960 540) rotate(90) scale(680 1180)">
+      <stop offset="0.56" stop-color="#02050B" stop-opacity="0"/>
+      <stop offset="1" stop-color="#02050B" stop-opacity="0.78"/>
+    </radialGradient>
+    <linearGradient id="ribbonA" x1="381" y1="295" x2="1514" y2="403" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#54E7DB" stop-opacity="0"/>
+      <stop offset="0.22" stop-color="#54E7DB" stop-opacity="0.28"/>
+      <stop offset="0.56" stop-color="#80C8FF" stop-opacity="0.2"/>
+      <stop offset="0.82" stop-color="#8D7CFF" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#8D7CFF" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="ribbonB" x1="270" y1="672" x2="1611" y2="548" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4BCED4" stop-opacity="0"/>
+      <stop offset="0.26" stop-color="#4BCED4" stop-opacity="0.14"/>
+      <stop offset="0.5" stop-color="#6BA8FF" stop-opacity="0.15"/>
+      <stop offset="0.78" stop-color="#A56BE0" stop-opacity="0.11"/>
+      <stop offset="1" stop-color="#A56BE0" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="blur180" x="-400" y="-400" width="2720" height="1880" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="90"/>
+    </filter>
+    <filter id="blur120" x="-300" y="-300" width="2520" height="1680" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="60"/>
+    </filter>
+    <filter id="blur56" x="-200" y="-200" width="2320" height="1480" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="28"/>
+    </filter>
+    <filter id="blur16" x="-40" y="-40" width="2000" height="1160" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="8"/>
+    </filter>
+    <filter id="grain" x="0" y="0" width="1920" height="1080" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.82" numOctaves="2" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer>
+        <feFuncA type="table" tableValues="0 0.02"/>
+      </feComponentTransfer>
+    </filter>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#base)"/>
+
+  <g filter="url(#blur180)">
+    <ellipse cx="910" cy="430" rx="420" ry="180" fill="#56D8FF" fill-opacity="0.18"/>
+    <ellipse cx="650" cy="370" rx="280" ry="150" fill="#4CE4C9" fill-opacity="0.14"/>
+    <ellipse cx="1285" cy="350" rx="310" ry="170" fill="#6F77FF" fill-opacity="0.14"/>
+    <ellipse cx="1120" cy="650" rx="300" ry="180" fill="#B764D4" fill-opacity="0.08"/>
+  </g>
+
+  <g filter="url(#blur120)">
+    <path d="M263 456C424 340 623 309 842 343C1070 378 1237 368 1458 248C1548 199 1645 182 1747 192V294C1664 286 1586 302 1483 352C1257 462 1065 465 814 426C596 393 443 413 283 539L263 456Z" fill="#67D7E6" fill-opacity="0.12"/>
+    <path d="M194 730C356 636 496 597 733 611C938 623 1093 591 1257 501C1408 418 1564 403 1749 430V533C1584 506 1451 527 1298 613C1103 723 941 759 698 741C492 727 332 760 181 835L194 730Z" fill="#6C7BFF" fill-opacity="0.1"/>
+  </g>
+
+  <rect width="1920" height="1080" fill="url(#glowCore)"/>
+  <rect width="1920" height="1080" fill="url(#glowTeal)"/>
+  <rect width="1920" height="1080" fill="url(#glowIndigo)"/>
+  <rect width="1920" height="1080" fill="url(#glowMagenta)"/>
+  <rect width="1920" height="1080" fill="url(#fogTop)"/>
+
+  <g opacity="0.72" filter="url(#blur56)">
+    <path d="M376 334C559 259 754 254 976 299C1166 337 1320 344 1510 279" stroke="url(#ribbonA)" stroke-width="22" stroke-linecap="round"/>
+    <path d="M295 690C477 619 703 598 914 625C1160 656 1363 626 1602 543" stroke="url(#ribbonB)" stroke-width="18" stroke-linecap="round"/>
+  </g>
+
+  <g opacity="0.6" filter="url(#blur16)">
+    <path d="M442 318C632 277 812 284 995 330C1154 370 1292 378 1450 347" stroke="#A9D9FF" stroke-opacity="0.1" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M340 678C524 632 749 627 969 656C1164 681 1377 655 1554 584" stroke="#C6A7FF" stroke-opacity="0.08" stroke-width="2" stroke-linecap="round"/>
+    <path d="M536 250C716 211 920 218 1115 271" stroke="#8CF3E3" stroke-opacity="0.07" stroke-width="1.8" stroke-linecap="round"/>
+  </g>
+
+  <g fill="#F4FBFF">
+    <circle cx="311" cy="245" r="1.1" fill-opacity="0.42"/>
+    <circle cx="446" cy="192" r="0.9" fill-opacity="0.34"/>
+    <circle cx="617" cy="287" r="1.2" fill-opacity="0.38"/>
+    <circle cx="768" cy="218" r="0.8" fill-opacity="0.28"/>
+    <circle cx="915" cy="170" r="1.1" fill-opacity="0.34"/>
+    <circle cx="1098" cy="234" r="1" fill-opacity="0.32"/>
+    <circle cx="1251" cy="182" r="1.2" fill-opacity="0.36"/>
+    <circle cx="1396" cy="248" r="0.9" fill-opacity="0.28"/>
+    <circle cx="1542" cy="220" r="1.1" fill-opacity="0.33"/>
+    <circle cx="1688" cy="276" r="0.8" fill-opacity="0.24"/>
+    <circle cx="395" cy="480" r="0.9" fill-opacity="0.24"/>
+    <circle cx="575" cy="546" r="1.1" fill-opacity="0.3"/>
+    <circle cx="733" cy="462" r="0.8" fill-opacity="0.23"/>
+    <circle cx="986" cy="516" r="1.2" fill-opacity="0.28"/>
+    <circle cx="1184" cy="445" r="0.9" fill-opacity="0.24"/>
+    <circle cx="1315" cy="562" r="1.1" fill-opacity="0.28"/>
+    <circle cx="1507" cy="484" r="0.9" fill-opacity="0.24"/>
+    <circle cx="1652" cy="601" r="1.2" fill-opacity="0.3"/>
+    <circle cx="286" cy="772" r="0.8" fill-opacity="0.18"/>
+    <circle cx="479" cy="838" r="1.1" fill-opacity="0.2"/>
+    <circle cx="699" cy="772" r="0.9" fill-opacity="0.18"/>
+    <circle cx="912" cy="846" r="1" fill-opacity="0.18"/>
+    <circle cx="1152" cy="782" r="0.8" fill-opacity="0.16"/>
+    <circle cx="1369" cy="852" r="1" fill-opacity="0.18"/>
+    <circle cx="1591" cy="768" r="0.9" fill-opacity="0.16"/>
+  </g>
+
+  <rect width="1920" height="1080" filter="url(#grain)" opacity="0.28"/>
+  <rect width="1920" height="1080" fill="url(#vignette)"/>
+  <rect width="1920" height="1080" fill="#02050A" fill-opacity="0.1"/>
+</svg>

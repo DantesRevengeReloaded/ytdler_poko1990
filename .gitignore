@@ -13,3 +13,9 @@
 /logs
 
 .env
+.env.local
+.env.*.local
+*.db
+*.log
+*.pyc
+app/services/.spotify_user_token.json

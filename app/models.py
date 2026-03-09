@@ -29,6 +29,17 @@ class StatsResponse(BaseModel):
     total_items: float
 
 
+class StatsBreakdownItem(BaseModel):
+    type: str
+    count: int
+    total_mb: float
+
+
+class StatsBreakdownResponse(BaseModel):
+    breakdown: list[StatsBreakdownItem]
+    storage: list[dict]
+
+
 class PlaylistDownloadRequest(BaseModel):
     url: str
     kind: str = Field("audio", description="audio or video")
@@ -75,6 +86,39 @@ class ProgressSnapshot(BaseModel):
     updated_at: datetime | None = None
     error: str | None = None
     playlist_title: str | None = None
+
+
+class HistoryItem(BaseModel):
+    id: int
+    type: str
+    title: str
+    time_length: float | None = None
+    size_mb: float | None = None
+    downloaded_date: datetime | None = None
+    url: str | None = None
+
+
+class HistoryResponse(BaseModel):
+    items: list[HistoryItem]
+    total: int
+
+
+class SpotifyHistoryItem(BaseModel):
+    id: int
+    playlist_title: str | None = None
+    source_type: str | None = None
+    track_title: str | None = None
+    artist: str | None = None
+    query: str | None = None
+    filepath: str | None = None
+    status: str | None = None
+    error: str | None = None
+    downloaded_date: datetime | None = None
+
+
+class SpotifyHistoryResponse(BaseModel):
+    items: list[SpotifyHistoryItem]
+    total: int
 
 
 class SpotifyPlaylistRequest(BaseModel):

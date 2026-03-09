@@ -24,6 +24,11 @@ class Settings(BaseSettings):
 
     spotify_client_id: str = Field("", env="POKODLER_SPOTIFY_CLIENT_ID")
     spotify_client_secret: str = Field("", env="POKODLER_SPOTIFY_CLIENT_SECRET")
+    spotify_redirect_uri: str = Field("http://127.0.0.1:8000/api/v1/spotify/auth/callback", env="POKODLER_SPOTIFY_REDIRECT_URI")
+    spotify_sp_dc: str = Field("", env="POKODLER_SPOTIFY_SP_DC")
+
+    max_concurrent_downloads: int = Field(3, env="POKODLER_MAX_CONCURRENT_DOWNLOADS")
+    cleanup_days: int = Field(0, env="POKODLER_CLEANUP_DAYS")
 
     model_config = SettingsConfigDict(env_prefix="POKODLER_", extra='ignore')
 

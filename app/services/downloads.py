@@ -13,10 +13,20 @@ from app.services import db_manager
 
 DownloadKind = Literal["audio", "video"]
 
-
-# Simple in-memory progress store. Good enough for single-user/session use.
+# Simple in-memory progress store. DB is used as fallback after restart.
 _progress: Dict[str, Dict] = {}
 _progress_lock = Lock()
+
+# Semaphore initialized lazily on first async call.
+_download_semaphore: asyncio.Semaphore | None = None
+
+
+def _get_semaphore() -> asyncio.Semaphore:
+    global _download_semaphore
+    if _download_semaphore is None:
+        settings = get_settings()
+        _download_semaphore = asyncio.Semaphore(settings.max_concurrent_downloads)
+    return _download_semaphore
 
 
 def _set_progress(job_id: str, **fields) -> None:
@@ -24,6 +34,10 @@ def _set_progress(job_id: str, **fields) -> None:
         current = _progress.get(job_id, {})
         current.update(fields)
         _progress[job_id] = current
+    try:
+        db_manager.upsert_job(job_id, **fields)
+    except Exception:
+        pass
 
 
 def _start_progress(job_id: str, job_type: str, message: str = "", total: int | None = None) -> None:
@@ -59,7 +73,13 @@ def _finish_progress(job_id: str, message: str = "Completed", error: str | None 
 def get_progress(job_id: str) -> Dict | None:
     with _progress_lock:
         entry = _progress.get(job_id)
-        return dict(entry) if entry else None
+        if entry:
+            return dict(entry)
+    # Fallback to DB (survives restart)
+    try:
+        return db_manager.get_job(job_id)
+    except Exception:
+        return None
 
 
 def _ensure_dir(path: str) -> None:
@@ -79,6 +99,50 @@ def _base_opts(download_dir: str) -> Dict:
         "noplaylist": True,
         "merge_output_format": "mp4",
     }
+
+
+def _write_id3_tags(
+    filepath: str,
+    title: str,
+    artist: str = "",
+    album: str | None = None,
+    year: str | None = None,
+    artwork_url: str | None = None,
+) -> None:
+    try:
+        from mutagen.id3 import ID3, TIT2, TPE1, TALB, TDRC, APIC
+        from mutagen.mp3 import MP3
+        import requests as req
+
+        audio = MP3(filepath, ID3=ID3)
+        try:
+            audio.add_tags()
+        except Exception:
+            pass  # Tags already exist
+
+        audio.tags["TIT2"] = TIT2(encoding=3, text=title)
+        if artist:
+            audio.tags["TPE1"] = TPE1(encoding=3, text=artist)
+        if album:
+            audio.tags["TALB"] = TALB(encoding=3, text=album)
+        if year:
+            audio.tags["TDRC"] = TDRC(encoding=3, text=str(year))
+        if artwork_url:
+            try:
+                resp = req.get(artwork_url, timeout=10)
+                if resp.status_code == 200:
+                    audio.tags["APIC"] = APIC(
+                        encoding=3,
+                        mime="image/jpeg",
+                        type=3,
+                        desc="Cover",
+                        data=resp.content,
+                    )
+            except Exception:
+                pass
+        audio.save(v2_version=3)
+    except Exception as e:
+        logging.warning(f"Could not write ID3 tags to {filepath}: {e}")
 
 
 def download_audio(url: str, bitrate: str | None = "192", job_id: str | None = None) -> Dict:
@@ -109,7 +173,6 @@ def download_audio(url: str, bitrate: str | None = "192", job_id: str | None = N
             if job_id:
                 _set_progress(job_id, phase="downloading", message="Downloading audio", completed=0, updated_at=datetime.utcnow())
             filepath = ydl.prepare_filename(info)
-            # FFmpegExtractAudio rewrites ext to .mp3
             if not filepath.endswith(".mp3"):
                 base, _ = os.path.splitext(filepath)
                 filepath = base + ".mp3"
@@ -131,6 +194,16 @@ def download_audio(url: str, bitrate: str | None = "192", job_id: str | None = N
         size_mb=size_mb,
         downloaded_at=downloaded_at,
         url=url,
+    )
+    # Write ID3 tags
+    upload_date = info.get("upload_date", "")
+    year = upload_date[:4] if upload_date and len(upload_date) >= 4 else None
+    _write_id3_tags(
+        filepath,
+        title=info.get("title", "unknown"),
+        artist=info.get("uploader") or info.get("channel") or "",
+        year=year,
+        artwork_url=info.get("thumbnail"),
     )
     logging.info(f"Audio download completed: {filepath}")
     if job_id:
@@ -202,15 +275,15 @@ def download_video(url: str, resolution: str | None = None, job_id: str | None =
 
 
 async def download(kind: DownloadKind, url: str, resolution: str | None = None, bitrate: str | None = None, job_id: str | None = None) -> Dict:
-    if kind == "audio":
-        return await asyncio.to_thread(download_audio, url, bitrate, job_id)
-    return await asyncio.to_thread(download_video, url, resolution, job_id)
+    async with _get_semaphore():
+        if kind == "audio":
+            return await asyncio.to_thread(download_audio, url, bitrate, job_id)
+        return await asyncio.to_thread(download_video, url, resolution, job_id)
 
 
 def _playlist_opts(download_dir: str, for_video: bool, resolution: str | None, bitrate: str | None) -> Dict:
     opts = _base_opts(download_dir)
     opts["noplaylist"] = False
-    # Allow yt_dlp to skip broken/blocked videos instead of raising.
     opts["ignoreerrors"] = True
     if for_video:
         fmt = "bestvideo+bestaudio/best" if resolution in (None, "highest") else f"bestvideo[height<={resolution[:-1]}]+bestaudio/best"
@@ -241,7 +314,6 @@ def download_playlist(kind: DownloadKind, url: str, resolution: str | None = Non
     if job_id:
         _start_progress(job_id, job_type="playlist", message="Fetching playlist metadata", total=None)
 
-    # First fetch metadata to get playlist title without downloading.
     meta_opts = _playlist_opts(base_dir, for_video=(kind == "video"), resolution=resolution, bitrate=bitrate)
     try:
         with yt_dlp.YoutubeDL(meta_opts) as ydl_meta:
@@ -254,7 +326,6 @@ def download_playlist(kind: DownloadKind, url: str, resolution: str | None = Non
         raise
 
     entries_meta = info.get("entries", []) or []
-    # Filter out None entries defensively
     entries_meta = [e for e in entries_meta if e]
     total_entries = len(entries_meta)
     if job_id:
@@ -281,7 +352,6 @@ def download_playlist(kind: DownloadKind, url: str, resolution: str | None = Non
             updated_at=datetime.utcnow(),
         )
 
-    # Rebuild opts to download directly into the playlist folder.
     opts = _playlist_opts(playlist_dir, for_video=(kind == "video"), resolution=resolution, bitrate=bitrate)
     opts["outtmpl"] = os.path.join(playlist_dir, "%(playlist_index)03d_%(title)s.%(ext)s")
 
@@ -306,7 +376,6 @@ def download_playlist(kind: DownloadKind, url: str, resolution: str | None = Non
             entry_title = entry.get("title") or f"item_{idx}"
             entry_opts = dict(opts)
             entry_opts["outtmpl"] = os.path.join(playlist_dir, f"{idx:03d}_%(title)s.%(ext)s")
-            # Avoid ydl aborting the loop on single-item errors.
             entry_opts["ignoreerrors"] = True
             try:
                 with yt_dlp.YoutubeDL(entry_opts) as ydl:
@@ -346,6 +415,16 @@ def download_playlist(kind: DownloadKind, url: str, resolution: str | None = Non
                         downloaded_at=downloaded_at,
                         url=entry_url,
                     )
+                    if kind == "audio" and os.path.exists(filepath):
+                        upload_date = info.get("upload_date", "")
+                        year = upload_date[:4] if upload_date and len(upload_date) >= 4 else None
+                        _write_id3_tags(
+                            filepath,
+                            title=title,
+                            artist=info.get("uploader") or info.get("channel") or "",
+                            year=year,
+                            artwork_url=info.get("thumbnail"),
+                        )
                     items.append(
                         {
                             "title": title,
@@ -378,9 +457,7 @@ def download_playlist(kind: DownloadKind, url: str, resolution: str | None = Non
             _finish_progress(job_id, error=str(exc), message="Failed")
         raise
     summary_total = total_entries or total_for_progress or (len(items) + len(failures))
-    logging.info(
-        f"Playlist download completed: {len(items)} items in {playlist_title} (skipped {len(failures)})"
-    )
+    logging.info(f"Playlist download completed: {len(items)} items in {playlist_title} (skipped {len(failures)})")
     finished_at = datetime.utcnow()
     duration_seconds = (finished_at - started_at).total_seconds()
     if job_id:
@@ -403,4 +480,26 @@ def download_playlist(kind: DownloadKind, url: str, resolution: str | None = Non
 
 
 async def download_playlist_async(kind: DownloadKind, url: str, resolution: str | None = None, bitrate: str | None = None, job_id: str | None = None) -> Dict:
-    return await asyncio.to_thread(download_playlist, kind, url, resolution, bitrate, job_id)
+    async with _get_semaphore():
+        return await asyncio.to_thread(download_playlist, kind, url, resolution, bitrate, job_id)
+
+
+def cleanup_old_files() -> None:
+    settings = get_settings()
+    if not settings.cleanup_days:
+        return
+    import time
+    cutoff = time.time() - (settings.cleanup_days * 86400)
+    for subdir in ("singledls", "playlists", "spotify_playlists"):
+        dirpath = os.path.join(settings.download_dir, subdir)
+        if not os.path.exists(dirpath):
+            continue
+        for root, _dirs, files in os.walk(dirpath):
+            for fname in files:
+                fp = os.path.join(root, fname)
+                try:
+                    if os.path.getmtime(fp) < cutoff:
+                        os.remove(fp)
+                        logging.info(f"Cleanup: removed {fp}")
+                except OSError:
+                    pass

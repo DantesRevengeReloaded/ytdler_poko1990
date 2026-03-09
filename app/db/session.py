@@ -1,22 +1,20 @@
-import sqlite3
-import os
+import psycopg2
 from contextlib import contextmanager
 
-from app.core.config import get_settings
+from app.core.config import db_dsn
 
-_db_path = None
+_dsn = None
 
 
 def init_pool() -> None:
-    global _db_path
-    settings = get_settings()
-    _db_path = os.path.join(settings.download_dir, 'downloads.db')
+    global _dsn
+    _dsn = db_dsn()
 
 
 def get_conn():
-    if _db_path is None:
+    if _dsn is None:
         init_pool()
-    return sqlite3.connect(_db_path)
+    return psycopg2.connect(_dsn)
 
 
 @contextmanager

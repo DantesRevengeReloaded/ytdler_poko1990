@@ -1,5 +1,5 @@
 import asyncio
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 import logging
 
 from uuid import uuid4
@@ -7,11 +7,14 @@ from uuid import uuid4
 from app.models import (
     DownloadRequest,
     DownloadResult,
+    HistoryItem,
+    HistoryResponse,
     PlaylistDownloadRequest,
     PlaylistDownloadResult,
     ProgressSnapshot,
 )
 from app.services.downloads import download, download_playlist_async, get_progress
+from app.services import db_manager
 
 router = APIRouter(prefix="/api/v1/downloads", tags=["downloads"])
 
@@ -25,7 +28,7 @@ async def create_download(payload: DownloadRequest):
         result["job_id"] = job_id
         logging.info(f"Download completed successfully")
         return DownloadResult(**result)
-    except Exception as exc:  # broad so we surface errors
+    except Exception as exc:
         logging.error(f"Download failed: {exc}")
         raise HTTPException(status_code=400, detail=str(exc))
 
@@ -56,9 +59,9 @@ async def fetch_progress(job_id: str):
         progress_percent = min(100.0, max(0.0, (completed / total) * 100))
     return ProgressSnapshot(
         job_id=job_id,
-        job_type=snapshot.get("job_type", "unknown"),
-        phase=snapshot.get("phase", "unknown"),
-        message=snapshot.get("message", ""),
+        job_type=snapshot.get("job_type") or "unknown",
+        phase=snapshot.get("phase") or "unknown",
+        message=snapshot.get("message") or "",
         total=total or None,
         completed=completed or None,
         progress_percent=progress_percent,
@@ -66,4 +69,17 @@ async def fetch_progress(job_id: str):
         updated_at=snapshot.get("updated_at"),
         error=snapshot.get("error"),
         playlist_title=snapshot.get("playlist_title"),
+    )
+
+
+@router.get("/history", response_model=HistoryResponse)
+async def get_download_history(
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+):
+    items = db_manager.get_history(limit=limit, offset=offset)
+    total = db_manager.get_history_count()
+    return HistoryResponse(
+        items=[HistoryItem(**item) for item in items],
+        total=total,
     )

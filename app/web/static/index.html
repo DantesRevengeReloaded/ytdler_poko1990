@@ -5,231 +5,305 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Poko1990 Downloader</title>
   <link rel="icon" href="/static/pokoapp.ico" />
-  <link rel="stylesheet" href="/static/styles.css?v=6" />
+  <link rel="stylesheet" href="/static/styles.css?v=9" />
 </head>
 <body>
-  <main class="shell">
-    <section class="card hero-card">
-      <div class="hero-top">
-        <div class="hero-title">
-          <img src="/static/pokoapp.ico" alt="PokoDler icon" class="hero-icon" />
-          <div>
-            <p class="pill pill-soft">Local-first • Private</p>
+  <div class="ambient-layer" aria-hidden="true"></div>
+  <main class="app-shell">
+    <header class="hero card-glass">
+      <div class="hero-main">
+        <div class="hero-brand">
+          <div class="hero-logo-frame">
+            <img src="/static/pokoapp.ico" alt="Poko1990 logo" class="hero-logo" />
+          </div>
+          <div class="hero-copy-wrap">
+            <div class="hero-kicker">
+              <span class="eyebrow hero-eyebrow">Desktop Utility</span>
+              <span class="hero-kicker-sep" aria-hidden="true"></span>
+              <span class="hero-kicker-note">Local media control center</span>
+            </div>
             <h1>Poko1990 Downloader</h1>
+            <p class="hero-copy">Single workspace for YouTube downloads, playlist jobs, and Spotify-based retrieval.</p>
           </div>
         </div>
-        <div class="hero-links">
-          <a class="icon-link" href="https://www.youtube.com" target="_blank" rel="noreferrer" aria-label="Open YouTube">
-            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M21.8 8.001a2.75 2.75 0 0 0-1.94-1.94C18.06 5.7 12 5.7 12 5.7s-6.06 0-7.86.36A2.75 2.75 0 0 0 2.2 8.001 28.4 28.4 0 0 0 1.85 12c-.01 1.34.11 2.68.36 4a2.75 2.75 0 0 0 1.94 1.94c1.8.36 7.85.36 7.85.36s6.06 0 7.86-.36a2.75 2.75 0 0 0 1.94-1.94c.25-1.32.37-2.66.36-4a28.4 28.4 0 0 0-.36-3.999Z" fill="#FF0000"/>
-              <path d="m9.75 9.5 4.5 2.5-4.5 2.5V9.5Z" fill="#fff"/>
-            </svg>
-          </a>
-          <a class="icon-link spotify" href="https://open.spotify.com" target="_blank" rel="noreferrer" aria-label="Open Spotify">
-            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="12" cy="12" r="11" fill="#1DB954" />
-              <path d="M7.6 9.3c3.4-.8 6.3-.5 8.8.9" stroke="#0B0F1A" stroke-width="1.6" stroke-linecap="round"/>
-              <path d="M8 12.3c2.8-.6 5.2-.4 7.3.7" stroke="#0B0F1A" stroke-width="1.4" stroke-linecap="round"/>
-              <path d="M8.4 14.9c2.1-.4 4-.3 5.6.4" stroke="#0B0F1A" stroke-width="1.2" stroke-linecap="round"/>
-            </svg>
-          </a>
+        <div class="hero-sidecard">
+          <div class="hero-context">
+            <div class="hero-about">
+              <p class="eyebrow">About</p>
+              <p class="hero-about-copy">Built for local batch work with visible progress, stored history, and direct access to output folders.</p>
+            </div>
+            <div class="hero-meta" aria-label="Application summary">
+              <div class="hero-meta-row">
+                <span class="hero-meta-label">Mode</span>
+                <span class="hero-meta-value">Local desktop workflow</span>
+              </div>
+              <div class="hero-meta-row">
+                <span class="hero-meta-label">Sources</span>
+                <span class="hero-meta-value">YouTube and Spotify mirror</span>
+              </div>
+            </div>
+          </div>
+          <div class="hero-toolbar">
+            <div class="hero-actions">
+              <a class="icon-btn" href="https://www.youtube.com" target="_blank" rel="noreferrer" aria-label="Open YouTube">
+                <img src="/static/assets/icons/youtube.svg" alt="YouTube" />
+              </a>
+              <a class="icon-btn" href="https://open.spotify.com" target="_blank" rel="noreferrer" aria-label="Open Spotify">
+                <img src="/static/assets/icons/spotify.svg" alt="Spotify" />
+              </a>
+              <span id="spotify-auth-badge" class="pill">Checking auth...</span>
+            </div>
+            <button id="settings-trigger" class="btn-ghost settings-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="settings-panel">Settings</button>
+          </div>
         </div>
       </div>
-      <div class="hero-features" id="hero-features">
-        <div class="feature-chip">
-          <span class="feature-title">Audio / Video</span>
-          <span class="feature-copy">MP3 with bitrate select • MP4 at chosen resolution</span>
+      <div class="hero-stats" id="hero-stats">
+        <div class="stat-chip">
+          <img src="/static/assets/icons/arrow-down-tray.svg" alt="Downloads" />
+          <div><span>Total items</span><strong id="hero-total-items">0</strong></div>
         </div>
-        <div class="feature-chip">
-          <span class="feature-title">Playlist smart save</span>
-          <span class="feature-copy">Keeps items in playlist-named folders for clean libraries</span>
+        <div class="stat-chip">
+          <img src="/static/assets/icons/chart-bar.svg" alt="Storage" />
+          <div><span>Total size</span><strong id="hero-total-size">0 MB</strong></div>
         </div>
-        <div class="feature-chip">
-          <span class="feature-title">Fast & private</span>
-          <span class="feature-copy">Runs locally with instant toasts, summary card, and stats</span>
-        </div>
-        <div class="feature-chip">
-          <span class="feature-title">Spotify bridge</span>
-          <span class="feature-copy">Preview Spotify playlists before mirroring downloads</span>
+        <div class="stat-chip">
+          <img src="/static/assets/icons/clock.svg" alt="Recent" />
+          <div><span>Recent activity</span><strong id="hero-recent">No entries</strong></div>
         </div>
       </div>
+    </header>
+
+    <section class="primary-grid">
+      <section class="card-glass action-card tone-green">
+        <div class="card-head">
+          <div><p class="eyebrow">Main action</p><h3>Single Download</h3></div>
+          <span class="badge">One-off</span>
+        </div>
+        <label for="url">YouTube single URL</label>
+        <input id="url" type="url" placeholder="https://www.youtube.com/watch?v=..." />
+        <div class="row"><label for="kind">Kind</label><select id="kind"><option value="audio">Audio (mp3)</option><option value="video">Video</option></select></div>
+        <div class="row" id="res-row"><label for="resolution">Resolution</label><select id="resolution"><option value="highest">Highest</option><option value="720p">720p</option><option value="480p">480p</option><option value="360p">360p</option></select></div>
+        <div class="row" id="br-row" hidden><label for="bitrate">Bitrate</label><select id="bitrate"><option value="192">192 kbps</option><option value="256">256 kbps</option><option value="320">320 kbps</option></select></div>
+        <div class="helper">Saves into the singles output folder.</div>
+        <div class="action-footer"><button id="submit" class="btn-primary">Download</button><div id="status" class="status"></div></div>
+      </section>
+
+      <section class="card-glass action-card tone-blue">
+        <div class="card-head">
+          <div><p class="eyebrow">Main action</p><h3>Playlist Download</h3></div>
+          <span class="badge ghost">Multi</span>
+        </div>
+        <label for="pl-url">YouTube playlist URL</label>
+        <input id="pl-url" type="url" placeholder="https://www.youtube.com/playlist?list=..." />
+        <div class="row"><label for="pl-kind">Kind</label><select id="pl-kind"><option value="audio">Audio (mp3)</option><option value="video">Video</option></select></div>
+        <div class="row" id="pl-res-row"><label for="pl-resolution">Resolution</label><select id="pl-resolution"><option value="highest">Highest</option><option value="720p">720p</option><option value="480p">480p</option><option value="360p">360p</option></select></div>
+        <div class="row" id="pl-br-row" hidden><label for="pl-bitrate">Bitrate</label><select id="pl-bitrate"><option value="192">192 kbps</option><option value="256">256 kbps</option><option value="320">320 kbps</option></select></div>
+        <div class="helper">Files are grouped by playlist name.</div>
+        <div class="action-footer"><button id="pl-submit" class="btn-secondary">Download Playlist</button><div id="pl-status" class="status"></div></div>
+      </section>
+
+      <section class="card-glass action-card tone-amber" id="spotify-card">
+        <div class="card-head">
+          <div><p class="eyebrow">Main action</p><h3>Spotify Retriever</h3></div>
+          <span class="badge ghost">Mirror</span>
+        </div>
+        <label for="sp-url">Spotify playlist/artist/album URL</label>
+        <input id="sp-url" type="url" placeholder="https://open.spotify.com/playlist/..." />
+        <div class="row"><label for="sp-kind">Kind</label><select id="sp-kind" disabled><option value="audio" selected>Audio (mp3)</option></select></div>
+        <div class="row"><label for="sp-bitrate">Bitrate</label><select id="sp-bitrate"><option value="192" selected>192 kbps</option><option value="256">256 kbps</option><option value="320">320 kbps</option></select></div>
+        <div class="helper">Uses YouTube as source and stores files in spotify folders.</div>
+        <div class="action-footer"><button id="sp-submit" class="btn-spotify">Download Spotify list</button><div id="sp-status" class="status"></div></div>
+      </section>
     </section>
 
-    <section class="card status-panel" id="live-status">
-      <div class="status-head">
-        <div>
-          <p class="eyebrow">Live Status</p>
-          <h2>In-flight work</h2>
+    <section class="activity-strip">
+      <section class="card-glass live-status" id="live-status">
+        <div class="card-head">
+          <div><p class="eyebrow">Live activity</p><h3>Active job monitor</h3></div>
+          <span id="status-pill" class="pill status-pill">
+            <span class="status-pill-dot" aria-hidden="true"></span>
+            <span id="status-pill-label">Idle</span>
+          </span>
         </div>
-        <span id="status-pill" class="pill pill-soft">Idle</span>
-      </div>
-      <div class="status-rows single-row">
-        <div class="status-row live-row">
+        <div class="status-row">
           <div class="status-row-top">
             <div class="status-meta">
               <span class="status-label" id="status-job-label">Idle</span>
               <span id="status-phase-label" class="muted">Waiting</span>
             </div>
-            <span id="status-counts" class="status-counts muted">—</span>
+            <span id="status-counts" class="status-counts muted">-</span>
           </div>
-          <div class="progress status-progress">
-            <div id="live-progress" class="progress-fill"></div>
-          </div>
+          <div class="progress"><div id="live-progress" class="progress-fill"></div></div>
           <div id="live-progress-text" class="progress-text">No work in progress</div>
         </div>
-      </div>
+      </section>
     </section>
 
-    <div class="cards-row">
-      <section class="card tone-green action-card">
-        <div class="card-header">
-          <div>
-            <p class="eyebrow">Single</p>
-            <h2>Single Download</h2>
-          </div>
-          <div class="badge">One-off</div>
+    <section class="result-strip" id="result-strip" hidden>
+      <section class="card-glass result-card" id="result">
+        <div class="card-head">
+          <div><p class="eyebrow">Result</p><h3>Download summary</h3></div>
+          <span id="result-kind" class="badge ghost"></span>
         </div>
-        <label for="url">YouTube Single Video URL</label>
-        <input id="url" type="url" placeholder="https://www.youtube.com/watch?v=..." />
-
-        <div class="row">
-          <label for="kind">Kind</label>
-          <select id="kind">
-            <option value="audio">Audio (mp3)</option>
-            <option value="video">Video</option>
-          </select>
-        </div>
-
-          <div class="row" id="res-row">
-            <label for="resolution">Resolution (video)</label>
-            <select id="resolution">
-              <option value="highest">Highest</option>
-              <option value="720p">720p</option>
-              <option value="480p">480p</option>
-              <option value="360p">360p</option>
-            </select>
-          </div>
-          <div class="row" id="br-row" hidden>
-            <label for="bitrate">Bitrate (audio)</label>
-            <select id="bitrate">
-              <option value="192">192 kbps</option>
-              <option value="256">256 kbps</option>
-              <option value="320">320 kbps</option>
-            </select>
-          </div>
-          <div class="helper-card">
-            <p class="helper-title">One-off downloads, tidy saves</p>
-            <p class="helper-copy"><strong>Source:</strong> YouTube single links. <strong>Defaults:</strong> Audio at 192 kbps or video at chosen resolution; saves into the singles folder.</p>
-          </div>
-        <div class="action-footer">
-          <button id="submit" class="primary block">Download</button>
-          <div id="status" class="status"></div>
-        </div>
+        <div id="result-body" class="result-body"></div>
       </section>
-
-      <section class="card tone-blue action-card">
-        <div class="card-header">
-          <div>
-            <p class="eyebrow">Batch</p>
-            <h2>Playlist Download</h2>
-          </div>
-          <div class="badge ghost">Multi</div>
-        </div>
-        <label for="pl-url">YouTube Playlist URL</label>
-        <input id="pl-url" type="url" placeholder="https://www.youtube.com/playlist?list=..." />
-
-        <div class="row">
-          <label for="pl-kind">Kind</label>
-          <select id="pl-kind">
-            <option value="audio">Audio (mp3)</option>
-            <option value="video">Video</option>
-          </select>
-        </div>
-
-          <div class="row" id="pl-res-row">
-            <label for="pl-resolution">Resolution (video)</label>
-            <select id="pl-resolution">
-              <option value="highest">Highest</option>
-              <option value="720p">720p</option>
-              <option value="480p">480p</option>
-              <option value="360p">360p</option>
-            </select>
-          </div>
-          <div class="row" id="pl-br-row" hidden>
-            <label for="pl-bitrate">Bitrate (audio)</label>
-            <select id="pl-bitrate">
-              <option value="192">192 kbps</option>
-              <option value="256">256 kbps</option>
-              <option value="320">320 kbps</option>
-            </select>
-          </div>
-          <div class="helper-card">
-            <p class="helper-title">Batch playlists with tidy folders</p>
-            <p class="helper-copy"><strong>Source:</strong> YouTube playlist items. <strong>Defaults:</strong> Audio at 192 kbps; video keeps chosen resolution. Files land in playlist-named directories.</p>
-          </div>
-        <div class="action-footer">
-          <button id="pl-submit" class="secondary block">Download Playlist</button>
-          <div id="pl-status" class="status"></div>
-        </div>
-      </section>
-
-      <section class="card tone-amber spotify-card action-card" id="spotify-card">
-        <div class="card-header">
-          <div>
-            <p class="eyebrow">Import</p>
-            <h2>Spotify Retriever</h2>
-          </div>
-          <div class="badge ghost">Mirror</div>
-        </div>
-        <label for="sp-url">Playlists / Artists / Albums</label>
-        <input id="sp-url" type="url" placeholder="https://open.spotify.com/playlist/..." />
-        <div class="row">
-          <label for="sp-kind">Kind</label>
-          <select id="sp-kind" disabled>
-            <option value="audio" selected>Audio (mp3)</option>
-          </select>
-        </div>
-        <div class="row">
-          <label for="sp-bitrate">Bitrate (audio)</label>
-          <select id="sp-bitrate">
-            <option value="192" selected>192 kbps</option>
-            <option value="256">256 kbps</option>
-            <option value="320">320 kbps</option>
-          </select>
-        </div>
-        <div class="helper-card helper-card--spotify">
-          <p class="helper-title">Mirror Spotify lists</p>
-          <p class="helper-copy"><strong>Source:</strong> Uses YouTube to fetch audio. <strong>Default:</strong> Audio saves at 192 kbps (adjust in bitrate menu).</p>
-        </div>
-        <div class="action-footer">
-          <button id="sp-submit" class="spotify-btn block">Download Spotify list</button>
-          <div id="sp-status" class="status"></div>
-        </div>
-      </section>
-    </div>
-
-    <section class="card" id="result" hidden>
-      <div class="card-header">
-        <div>
-          <p class="eyebrow">Result</p>
-          <h2>Download Summary</h2>
-        </div>
-        <div id="result-kind" class="badge ghost"></div>
-      </div>
-      <div id="result-body" class="result-body"></div>
     </section>
 
-    <section class="card">
-      <div class="card-header">
-        <div>
-          <p class="eyebrow">Usage</p>
-          <h2>Stats</h2>
+    <section class="utility-grid">
+      <section class="card-glass support-card" id="stats-card">
+        <div class="card-head">
+          <div><p class="eyebrow">Insights</p><h3>Usage overview</h3></div>
+          <button id="refresh-stats" class="btn-ghost">Refresh</button>
         </div>
-        <button id="refresh-stats" class="ghost">Refresh</button>
-      </div>
-      <div id="stats" class="stats"></div>
+        <div id="stats" class="stats-grid"></div>
+        <div id="stats-breakdown" class="stats-breakdown"></div>
+      </section>
+
+      <section class="card-glass support-card" id="output-card">
+        <div class="card-head"><div><p class="eyebrow">Output</p><h3>Folders</h3></div></div>
+        <p id="output-root" class="path-line">Resolving output folder...</p>
+        <div id="output-folders" class="folder-list"></div>
+      </section>
+
+      <section class="card-glass support-card" id="queue-card">
+        <div class="card-head"><div><p class="eyebrow">Queue</p><h3>History snapshot</h3></div></div>
+        <div id="queue-summary" class="queue-summary">Loading summary...</div>
+      </section>
+    </section>
+
+    <section class="workspace-grid">
+      <section class="card-glass workspace-card" id="library-card">
+        <div class="card-head">
+          <div><p class="eyebrow">Workspace</p><h3>Library</h3></div>
+          <button id="refresh-library" class="btn-ghost">Refresh</button>
+        </div>
+        <div class="library-controls">
+          <label for="library-playlist-select">Selected playlist</label>
+          <select id="library-playlist-select" class="library-select"></select>
+        </div>
+        <div id="library-summary" class="library-summary">No playlist selected.</div>
+        <audio id="audio-player" controls class="audio-player"></audio>
+        <div id="library-body" class="library-body">Loading files...</div>
+        <div class="library-footer">
+          <button id="library-load-more" class="btn-ghost" hidden>Load more</button>
+        </div>
+      </section>
+
+      <section class="card-glass workspace-card" id="history-card">
+        <div class="card-head">
+          <div><p class="eyebrow">Workspace</p><h3>History</h3></div>
+          <div class="history-actions">
+            <button id="refresh-history" class="btn-ghost">Refresh</button>
+          </div>
+        </div>
+        <div class="history-controls">
+          <div class="history-control-grid">
+            <div>
+              <label for="history-source-select">Source</label>
+              <select id="history-source-select" class="library-select">
+                <option value="downloads">Downloads</option>
+                <option value="spotify">Spotify</option>
+              </select>
+            </div>
+            <div>
+              <label for="history-group-select">Selected group</label>
+              <select id="history-group-select" class="library-select"></select>
+            </div>
+          </div>
+        </div>
+        <div id="history-summary" class="library-summary">Loading history summary...</div>
+        <div id="history-body" class="history-body">Loading history...</div>
+        <div class="library-footer">
+          <button id="history-load-more" class="btn-ghost" hidden>Load more</button>
+        </div>
+      </section>
     </section>
   </main>
-  <script src="/static/main.js?v=6"></script>
+  <div id="settings-backdrop" class="settings-backdrop" hidden aria-hidden="true"></div>
+  <div id="settings-panel" class="settings-popover" hidden role="dialog" aria-label="Application settings">
+    <div class="settings-popover-head">
+      <div>
+        <p class="settings-section-title">Settings</p>
+        <p class="settings-popover-copy">Desktop preferences and formatting controls.</p>
+      </div>
+      <button id="settings-close" class="btn-ghost settings-close" type="button" aria-label="Close settings">Close</button>
+    </div>
+    <div class="settings-section">
+      <p class="settings-section-title">Display</p>
+      <label class="toggle"><input type="checkbox" id="setting-autorefresh" checked />Auto refresh stats and history</label>
+      <label class="settings-field">
+        <span>Density</span>
+        <select id="setting-density">
+          <option value="comfortable" selected>Comfortable</option>
+          <option value="compact">Compact</option>
+        </select>
+      </label>
+      <label class="toggle"><input type="checkbox" id="setting-animations" checked />Enable subtle animations</label>
+      <label class="toggle"><input type="checkbox" id="setting-reduce-motion" />Reduce motion</label>
+    </div>
+    <div class="settings-section">
+      <p class="settings-section-title">Downloads</p>
+      <label class="settings-field">
+        <span>Preferred audio bitrate</span>
+        <select disabled>
+          <option>192 kbps</option>
+        </select>
+      </label>
+      <label class="settings-field">
+        <span>Preferred video quality</span>
+        <select disabled>
+          <option>Highest</option>
+        </select>
+      </label>
+      <label class="settings-field">
+        <span>Maximum parallel jobs</span>
+        <select disabled>
+          <option>1</option>
+        </select>
+      </label>
+    </div>
+    <div class="settings-section">
+      <p class="settings-section-title">Library / History</p>
+      <label class="settings-field">
+        <span>File sizes</span>
+        <select id="setting-size-format">
+          <option value="adaptive" selected>Adaptive MB/GB</option>
+          <option value="mb">Always MB</option>
+        </select>
+      </label>
+      <label class="settings-field">
+        <span>Timestamps</span>
+        <select id="setting-time-format">
+          <option value="relative" selected>Relative</option>
+          <option value="exact">Exact</option>
+        </select>
+      </label>
+      <label class="settings-field">
+        <span>Default selected playlist</span>
+        <input type="text" value="Coming soon" disabled />
+      </label>
+    </div>
+    <div class="settings-section">
+      <p class="settings-section-title">Notifications</p>
+      <label class="toggle"><input type="checkbox" disabled />Toast on completion</label>
+      <label class="toggle"><input type="checkbox" disabled />Toast on failure</label>
+      <label class="settings-field">
+        <span>Auto-dismiss notifications</span>
+        <select disabled>
+          <option>2 seconds</option>
+        </select>
+      </label>
+    </div>
+    <div class="settings-section">
+      <p class="settings-section-title">Advanced</p>
+      <label class="settings-field">
+        <span>Default output folder</span>
+        <input type="text" value="Coming soon" disabled />
+      </label>
+      <label class="toggle"><input type="checkbox" disabled />Enable debug panel</label>
+      <label class="toggle"><input type="checkbox" disabled />Show internal logs</label>
+    </div>
+  </div>
+  <script src="/static/main.js?v=9"></script>
 </body>
 </html>
