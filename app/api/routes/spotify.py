@@ -74,9 +74,16 @@ async def get_spotify_history(
 
 @router.post("/mirror", response_model=SpotifyMirrorResponse)
 async def mirror_spotify_playlist(payload: SpotifyMirrorRequest):
-    logging.info(f"Received Spotify mirror request for url={payload.url}")
+    logging.info(f"Received Spotify mirror request for kind={payload.kind}, url={payload.url}")
     try:
-        data = await asyncio.to_thread(spotify_service.mirror_to_youtube, payload.url, payload.bitrate, payload.job_id)
+        data = await asyncio.to_thread(
+            spotify_service.mirror_to_youtube,
+            payload.url,
+            payload.kind,
+            payload.resolution,
+            payload.bitrate,
+            payload.job_id,
+        )
         return SpotifyMirrorResponse(**data)
     except spotify_service.SpotifyConfigError as exc:
         logging.error(f"Spotify config error: {exc}")

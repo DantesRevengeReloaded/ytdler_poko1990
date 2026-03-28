@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Poko1990 Downloader</title>
   <link rel="icon" href="/static/pokoapp.ico" />
-  <link rel="stylesheet" href="/static/styles.css?v=9" />
+  <link rel="stylesheet" href="/static/styles.css?v=10" />
 </head>
 <body>
   <div class="ambient-layer" aria-hidden="true"></div>
@@ -109,9 +109,10 @@
         </div>
         <label for="sp-url">Spotify playlist/artist/album URL</label>
         <input id="sp-url" type="url" placeholder="https://open.spotify.com/playlist/..." />
-        <div class="row"><label for="sp-kind">Kind</label><select id="sp-kind" disabled><option value="audio" selected>Audio (mp3)</option></select></div>
-        <div class="row"><label for="sp-bitrate">Bitrate</label><select id="sp-bitrate"><option value="192" selected>192 kbps</option><option value="256">256 kbps</option><option value="320">320 kbps</option></select></div>
-        <div class="helper">Uses YouTube as source and stores files in spotify folders.</div>
+        <div class="row"><label for="sp-kind">Kind</label><select id="sp-kind"><option value="audio" selected>Audio (mp3)</option><option value="video">Video</option></select></div>
+        <div class="row" id="sp-res-row" hidden><label for="sp-resolution">Resolution</label><select id="sp-resolution"><option value="highest">Highest</option><option value="720p">720p</option><option value="480p">480p</option><option value="360p">360p</option></select></div>
+        <div class="row" id="sp-br-row"><label for="sp-bitrate">Bitrate</label><select id="sp-bitrate"><option value="192" selected>192 kbps</option><option value="256">256 kbps</option><option value="320">320 kbps</option></select></div>
+        <div class="helper">Uses YouTube as source and stores audio or video files in spotify folders.</div>
         <div class="action-footer"><button id="sp-submit" class="btn-spotify">Download Spotify list</button><div id="sp-status" class="status"></div></div>
       </section>
     </section>
@@ -182,7 +183,25 @@
           <select id="library-playlist-select" class="library-select"></select>
         </div>
         <div id="library-summary" class="library-summary">No playlist selected.</div>
-        <audio id="audio-player" controls class="audio-player"></audio>
+        <section id="player-shell" class="player-shell" hidden>
+          <div class="player-main">
+            <div class="player-track">
+              <div id="player-title" class="player-title">No track selected</div>
+              <div id="player-meta" class="player-meta">Choose a song from the library</div>
+            </div>
+            <div class="player-controls">
+              <button id="player-prev" class="btn-ghost player-btn" type="button" aria-label="Previous track">Previous</button>
+              <button id="player-toggle" class="btn-primary player-btn player-btn-main" type="button" aria-label="Play or pause">Play</button>
+              <button id="player-next" class="btn-ghost player-btn" type="button" aria-label="Next track">Next</button>
+            </div>
+          </div>
+          <div class="player-progress">
+            <span id="player-current-time" class="player-time">0:00</span>
+            <input id="player-seek" class="player-seek" type="range" min="0" max="0" step="1" value="0" aria-label="Seek playback" />
+            <span id="player-duration" class="player-time">0:00</span>
+          </div>
+        </section>
+        <audio id="audio-player" class="audio-player" preload="metadata"></audio>
         <div id="library-body" class="library-body">Loading files...</div>
         <div class="library-footer">
           <button id="library-load-more" class="btn-ghost" hidden>Load more</button>
@@ -304,6 +323,6 @@
       <label class="toggle"><input type="checkbox" disabled />Show internal logs</label>
     </div>
   </div>
-  <script src="/static/main.js?v=9"></script>
+  <script src="/static/main.js?v=10"></script>
 </body>
 </html>

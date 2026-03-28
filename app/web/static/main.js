@@ -36,6 +36,13 @@ const libraryState = {
   selectedKey: '',
   visibleCount: LIBRARY_PAGE_SIZE,
 };
+const playerState = {
+  queue: [],
+  currentIndex: -1,
+  currentPath: '',
+  currentTrack: null,
+  isPlaying: false,
+};
 const HISTORY_PAGE_SIZE = 60;
 const historyState = {
   tab: 'downloads',
@@ -429,10 +436,17 @@ async function mirrorSpotifyPlaylist() {
   startPolling('spotify', jobId);
 
   try {
+    const kind = $('#sp-kind').value;
     const res = await fetch('/api/v1/spotify/mirror', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url, bitrate: $('#sp-bitrate').value || '192', job_id: jobId }),
+      body: JSON.stringify({
+        url,
+        kind,
+        resolution: $('#sp-resolution').value,
+        bitrate: $('#sp-bitrate').value || '192',
+        job_id: jobId,
+      }),
     });
 
     if (!res.ok) {
@@ -591,6 +605,9 @@ async function loadLibrary() {
     libraryState.groups = buildLibraryGroups(files);
 
     if (!files.length) {
+      clearCurrentTrack();
+      playerState.queue = [];
+      renderPlayerState();
       body.innerHTML = '<div class="state-card">No files yet. Start with a single or playlist download.</div>';
       if (selector) selector.innerHTML = '<option value="all">All playlists</option>';
       if (summary) summary.textContent = 'No tracks found.';
@@ -670,6 +687,151 @@ function renderLibrarySelector() {
   selector.value = libraryState.selectedKey;
 }
 
+function getSelectedLibraryGroup() {
+  return libraryState.groups.find((g) => g.key === libraryState.selectedKey) || libraryState.groups[0] || null;
+}
+
+function getLibraryFileMeta(file) {
+  const parts = String(file.path || '').split('/');
+  const folderName = parts[1] || file.category || 'library';
+  return `${folderName} · ${formatSize(file.size_mb)}`;
+}
+
+function renderPlayerState() {
+  const shell = $('#player-shell');
+  const title = $('#player-title');
+  const meta = $('#player-meta');
+  const toggle = $('#player-toggle');
+  const prev = $('#player-prev');
+  const next = $('#player-next');
+  const seek = $('#player-seek');
+  const currentTime = $('#player-current-time');
+  const duration = $('#player-duration');
+  const hasTrack = !!playerState.currentTrack;
+
+  if (!shell || !title || !meta || !toggle || !prev || !next || !seek || !currentTime || !duration) return;
+
+  shell.hidden = !hasTrack;
+  title.textContent = hasTrack ? playerState.currentTrack.name : 'No track selected';
+  meta.textContent = hasTrack ? getLibraryFileMeta(playerState.currentTrack) : 'Choose a song from the library';
+  toggle.textContent = playerState.isPlaying ? 'Pause' : 'Play';
+  toggle.disabled = !hasTrack;
+  prev.disabled = !hasTrack || playerState.currentIndex <= 0;
+  next.disabled = !hasTrack || playerState.currentIndex < 0 || playerState.currentIndex >= playerState.queue.length - 1;
+
+  if (!hasTrack) {
+    seek.max = '0';
+    seek.value = '0';
+    currentTime.textContent = '0:00';
+    duration.textContent = '0:00';
+  }
+}
+
+function syncPlayerWithLibrary() {
+  playerState.queue = (getSelectedLibraryGroup()?.files || []).filter((file) => file.type === 'audio');
+  if (!playerState.currentPath) {
+    playerState.currentIndex = -1;
+    playerState.currentTrack = null;
+    renderPlayerState();
+    return;
+  }
+
+  const currentTrack = libraryState.allFiles.find((file) => file.path === playerState.currentPath);
+  if (!currentTrack) {
+    clearCurrentTrack();
+    renderPlayerState();
+    return;
+  }
+
+  playerState.currentTrack = currentTrack;
+  playerState.currentIndex = playerState.queue.findIndex((file) => file.path === playerState.currentPath);
+  renderPlayerState();
+}
+
+function playTrackAt(index) {
+  const player = $('#audio-player');
+  const track = playerState.queue[index];
+  if (!player || !track) return;
+
+  playerState.currentTrack = track;
+  playerState.currentPath = track.path;
+  playerState.currentIndex = index;
+
+  if (player.dataset.path !== track.path) {
+    player.src = `/api/v1/files/stream/${encodeFilePath(track.path)}`;
+    player.dataset.path = track.path;
+  }
+
+  playerState.isPlaying = true;
+  renderPlayerState();
+  renderLibraryRows();
+
+  const playPromise = player.play();
+  if (playPromise && typeof playPromise.catch === 'function') {
+    playPromise.catch(() => {
+      playerState.isPlaying = false;
+      renderPlayerState();
+      renderLibraryRows();
+    });
+  }
+}
+
+function playTrackByPath(path) {
+  if (!path) return;
+  syncPlayerWithLibrary();
+  const index = playerState.queue.findIndex((file) => file.path === path);
+  if (index === -1) return;
+
+  const player = $('#audio-player');
+  if (player && playerState.currentPath === path && player.paused) {
+    player.play();
+    return;
+  }
+
+  playTrackAt(index);
+}
+
+function clearCurrentTrack() {
+  const player = $('#audio-player');
+  if (player) {
+    player.pause();
+    player.removeAttribute('src');
+    player.dataset.path = '';
+    player.load();
+  }
+
+  playerState.currentIndex = -1;
+  playerState.currentPath = '';
+  playerState.currentTrack = null;
+  playerState.isPlaying = false;
+}
+
+function togglePlayerPlayback() {
+  const player = $('#audio-player');
+  if (!player || !playerState.currentTrack) return;
+
+  if (player.paused) {
+    player.play();
+  } else {
+    player.pause();
+  }
+}
+
+function playPreviousTrack() {
+  const player = $('#audio-player');
+  if (player && player.currentTime > 3) {
+    player.currentTime = 0;
+    return;
+  }
+  if (playerState.currentIndex > 0) playTrackAt(playerState.currentIndex - 1);
+}
+
+function playNextTrack() {
+  if (playerState.currentIndex >= 0 && playerState.currentIndex < playerState.queue.length - 1) {
+    playTrackAt(playerState.currentIndex + 1);
+  }
+}
+
 function renderLibraryRows() {
   const body = $('#library-body');
   const summary = $('#library-summary');
@@ -678,11 +840,15 @@ function renderLibraryRows() {
 
   const selected = libraryState.groups.find((g) => g.key === libraryState.selectedKey) || libraryState.groups[0];
   if (!selected) {
+    playerState.queue = [];
+    renderPlayerState();
     body.innerHTML = '<div class="state-card">No tracks available.</div>';
     if (summary) summary.textContent = 'No tracks available.';
     if (loadMoreBtn) loadMoreBtn.hidden = true;
     return;
   }
+
+  syncPlayerWithLibrary();
 
   const visible = selected.files.slice(0, libraryState.visibleCount);
   const latest = selected.latestModified ? formatDate(selected.latestModified) : '-';
@@ -698,48 +864,26 @@ function renderLibraryRows() {
 
   body.innerHTML = visible.map((f) => {
     const isAudio = f.type === 'audio';
-    const parts = String(f.path || '').split('/');
-    const folderName = parts[1] || f.category || 'library';
-    const meta = `${folderName} · ${formatSize(f.size_mb)}`;
+    const isActive = f.path === playerState.currentPath;
+    const badge = isActive ? (playerState.isPlaying ? 'Playing' : 'Paused') : (isAudio ? 'Audio' : 'Video');
     return `
-      <div class="lib-row" data-path="${escapeAttr(f.path)}" data-type="${f.type}">
+      <div
+        class="lib-row${isAudio ? ' is-playable' : ' is-disabled'}${isActive ? ' is-active' : ''}"
+        data-path="${escapeAttr(f.path)}"
+        data-type="${escapeAttr(f.type)}"
+        ${isAudio ? `role="button" tabindex="0" aria-label="Play ${escapeAttr(f.name)}"` : 'aria-disabled="true"'}
+      >
         <div class="lib-meta">
           <span class="lib-name" title="${escapeAttr(f.name)}">${escapeHtml(f.name)}</span>
-          <span class="lib-info">${escapeHtml(meta)}</span>
+          <span class="lib-info">${escapeHtml(getLibraryFileMeta(f))}</span>
         </div>
-        <div class="lib-actions">
-          ${isAudio ? `<button class="btn-ghost lib-btn" data-path="${escapeAttr(f.path)}" onclick="playFile(this)">Play</button>` : ''}
-          <button class="btn-ghost lib-btn" data-path="${escapeAttr(f.path)}" onclick="deleteFile(this)">Delete</button>
-        </div>
+        <span class="lib-badge${isActive ? ' is-live' : ''}">${escapeHtml(badge)}</span>
       </div>
     `;
   }).join('');
 
   if (loadMoreBtn) {
     loadMoreBtn.hidden = libraryState.visibleCount >= selected.files.length;
-  }
-}
-
-function playFile(btn) {
-  const path = btn.dataset.path;
-  const player = $('#audio-player');
-  if (!player) return;
-  player.src = `/api/v1/files/stream/${encodeFilePath(path)}`;
-  player.style.display = 'block';
-  player.play();
-  showToast(`Playing ${basename(path)}`, 'success');
-}
-
-async function deleteFile(btn) {
-  const path = btn.dataset.path;
-  if (!confirm(`Delete ${basename(path)}?`)) return;
-  try {
-    const res = await fetch(`/api/v1/files/${encodeFilePath(path)}`, { method: 'DELETE' });
-    if (!res.ok) throw new Error('Delete failed');
-    showToast('Deleted', 'success');
-    await refreshData();
-  } catch (err) {
-    showToast(err.message || 'Delete failed', 'error');
   }
 }
 
@@ -1045,6 +1189,13 @@ function basename(path) {
   return parts[parts.length - 1];
 }
 
+function formatPlaybackTime(totalSeconds) {
+  const seconds = Math.max(0, Math.floor(Number(totalSeconds) || 0));
+  const minutes = Math.floor(seconds / 60);
+  const remainder = seconds % 60;
+  return `${minutes}:${String(remainder).padStart(2, '0')}`;
+}
+
 function formatDate(iso) {
   if (!iso) return '-';
   try {
@@ -1198,6 +1349,66 @@ function bindEvents() {
     libraryState.visibleCount += LIBRARY_PAGE_SIZE;
     renderLibraryRows();
   });
+  $('#library-body')?.addEventListener('click', (event) => {
+    const row = event.target.closest('.lib-row.is-playable');
+    if (!row) return;
+    playTrackByPath(row.dataset.path);
+  });
+  $('#library-body')?.addEventListener('keydown', (event) => {
+    const row = event.target.closest('.lib-row.is-playable');
+    if (!row) return;
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    playTrackByPath(row.dataset.path);
+  });
+  $('#player-prev')?.addEventListener('click', playPreviousTrack);
+  $('#player-next')?.addEventListener('click', playNextTrack);
+  $('#player-toggle')?.addEventListener('click', togglePlayerPlayback);
+  $('#player-seek')?.addEventListener('input', (event) => {
+    const player = $('#audio-player');
+    const currentTime = $('#player-current-time');
+    const nextValue = Number(event.target.value) || 0;
+    if (player) player.currentTime = nextValue;
+    if (currentTime) currentTime.textContent = formatPlaybackTime(nextValue);
+  });
+  $('#audio-player')?.addEventListener('loadedmetadata', () => {
+    const player = $('#audio-player');
+    const seek = $('#player-seek');
+    const duration = $('#player-duration');
+    if (!player || !seek || !duration) return;
+    const total = Number.isFinite(player.duration) ? Math.floor(player.duration) : 0;
+    seek.max = String(total);
+    seek.value = '0';
+    duration.textContent = formatPlaybackTime(total);
+  });
+  $('#audio-player')?.addEventListener('timeupdate', () => {
+    const player = $('#audio-player');
+    const seek = $('#player-seek');
+    const currentTime = $('#player-current-time');
+    if (!player || !seek || !currentTime) return;
+    const progress = Math.floor(player.currentTime || 0);
+    seek.value = String(progress);
+    currentTime.textContent = formatPlaybackTime(progress);
+  });
+  $('#audio-player')?.addEventListener('play', () => {
+    playerState.isPlaying = true;
+    renderPlayerState();
+    renderLibraryRows();
+  });
+  $('#audio-player')?.addEventListener('pause', () => {
+    playerState.isPlaying = false;
+    renderPlayerState();
+    renderLibraryRows();
+  });
+  $('#audio-player')?.addEventListener('ended', () => {
+    if (playerState.currentIndex >= 0 && playerState.currentIndex < playerState.queue.length - 1) {
+      playNextTrack();
+      return;
+    }
+    playerState.isPlaying = false;
+    renderPlayerState();
+    renderLibraryRows();
+  });
   $('#refresh-history')?.addEventListener('click', loadHistory);
   $('#history-source-select')?.addEventListener('change', (e) => {
     historyState.tab = e.target.value;
@@ -1217,6 +1428,7 @@ function bindEvents() {
 
   $('#kind')?.addEventListener('change', () => toggleInputs('#kind', '#res-row', '#br-row'));
   $('#pl-kind')?.addEventListener('change', () => toggleInputs('#pl-kind', '#pl-res-row', '#pl-br-row'));
+  $('#sp-kind')?.addEventListener('change', () => toggleInputs('#sp-kind', '#sp-res-row', '#sp-br-row'));
 }
 
 async function init() {
@@ -1227,6 +1439,7 @@ async function init() {
   initSettingsPopover();
   toggleInputs('#kind', '#res-row', '#br-row');
   toggleInputs('#pl-kind', '#pl-res-row', '#pl-br-row');
+  toggleInputs('#sp-kind', '#sp-res-row', '#sp-br-row');
   renderStatus();
 
   await refreshData();
@@ -1236,6 +1449,3 @@ async function init() {
 }
 
 init();
-
-window.playFile = playFile;
-window.deleteFile = deleteFile;

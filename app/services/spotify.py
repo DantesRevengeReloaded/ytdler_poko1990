@@ -6,7 +6,7 @@ import re
 import time
 import urllib.parse
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Literal, Optional, Tuple
 
 import requests
 
@@ -35,6 +35,7 @@ _TOKEN_FILE = os.path.join(os.path.dirname(__file__), ".spotify_user_token.json"
 
 # sp_dc web player token cache (bypasses editorial playlist restrictions)
 _SP_DC_TOKEN: Dict[str, Optional[str | float]] = {"access_token": None, "expires_at": 0.0}
+SpotifyMirrorKind = Literal["audio", "video"]
 
 
 def _get_sp_dc_token() -> Optional[str]:
@@ -561,6 +562,7 @@ def _ensure_dir(path: str) -> None:
 
 
 _MIN_MP3_SIZE_BYTES = 50 * 1024  # 50 KB — anything smaller is not real audio
+_VIDEO_EXTENSIONS = (".mp4", ".mkv", ".webm", ".avi", ".mov", ".m4v")
 
 
 def _yt_audio_opts(download_dir: str, bitrate: str | None) -> Dict:
@@ -579,6 +581,43 @@ def _yt_audio_opts(download_dir: str, bitrate: str | None) -> Dict:
     }
 
 
+def _yt_video_format(resolution: str | None) -> str:
+    if resolution in (None, "highest"):
+        return "bestvideo[ext!=mhtml]+bestaudio[ext!=mhtml]/best[ext!=mhtml]"
+
+    height = "".join(ch for ch in resolution if ch.isdigit())
+    if not height:
+        return "bestvideo[ext!=mhtml]+bestaudio[ext!=mhtml]/best[ext!=mhtml]"
+
+    return (
+        f"bestvideo[height<={height}][ext!=mhtml]+bestaudio[ext!=mhtml]/"
+        f"best[height<={height}][ext!=mhtml]"
+    )
+
+
+def _yt_video_opts(download_dir: str, resolution: str | None) -> Dict:
+    return {
+        "outtmpl": os.path.join(download_dir, "%(title)s.%(ext)s"),
+        "quiet": True,
+        "noplaylist": True,
+        "format": _yt_video_format(resolution),
+    }
+
+
+def _resolve_downloaded_filepath(base_filepath: str, kind: SpotifyMirrorKind) -> str:
+    if os.path.exists(base_filepath):
+        return base_filepath
+
+    base, _ = os.path.splitext(base_filepath)
+    candidate_exts = (".mp3",) if kind == "audio" else _VIDEO_EXTENSIONS
+    for ext in candidate_exts:
+        candidate = base + ext
+        if os.path.exists(candidate):
+            return candidate
+
+    return base_filepath
+
+
 def _validate_mp3(filepath: str) -> None:
     """Raise if filepath is not a usable MP3 file."""
     if not os.path.exists(filepath):
@@ -595,7 +634,13 @@ def _validate_mp3(filepath: str) -> None:
         raise SpotifyAPIError(f"Downloaded file is not a valid MP3 (header: {header!r})")
 
 
-def mirror_to_youtube(url: str, bitrate: str | None = "192", job_id: str | None = None) -> Dict:
+def mirror_to_youtube(
+    url: str,
+    kind: SpotifyMirrorKind = "audio",
+    resolution: str | None = None,
+    bitrate: str | None = "192",
+    job_id: str | None = None,
+) -> Dict:
     settings = get_settings()
 
     if job_id:
@@ -637,13 +682,15 @@ def mirror_to_youtube(url: str, bitrate: str | None = "192", job_id: str | None 
         title = track.get("title", "Unknown")
         artist = track.get("artist", "Unknown")
         query = f"{title} {artist}".strip()
-        opts = _yt_audio_opts(playlist_dir, bitrate)
+        opts = _yt_audio_opts(playlist_dir, bitrate) if kind == "audio" else _yt_video_opts(playlist_dir, resolution)
         # Prefix filenames with index to preserve order
         opts["outtmpl"] = os.path.join(playlist_dir, f"{idx:03d}_%(title)s.%(ext)s")
         opts["default_search"] = "auto"  # allows direct URL or search
+
         def _try_download(search_query: str):
             """Attempt a single yt-dlp search+download. Returns (entry, filepath, size_mb)."""
             import yt_dlp as _yt_dlp
+
             with _yt_dlp.YoutubeDL(opts) as ydl:
                 info = ydl.extract_info(f"ytsearch1:{search_query}", download=True)
                 entry = None
@@ -651,11 +698,11 @@ def mirror_to_youtube(url: str, bitrate: str | None = "192", job_id: str | None 
                     entry = info["entries"][0]
                 if not entry:
                     raise SpotifyAPIError(f"No search result for {search_query}")
-                fp = ydl.prepare_filename(entry)
-                if not fp.endswith(".mp3"):
-                    base, _ = os.path.splitext(fp)
-                    fp = base + ".mp3"
-                _validate_mp3(fp)
+                fp = _resolve_downloaded_filepath(ydl.prepare_filename(entry), kind)
+                if kind == "audio":
+                    _validate_mp3(fp)
+                elif not os.path.exists(fp):
+                    raise SpotifyAPIError(f"Expected video not found: {fp}")
                 sz = os.path.getsize(fp) / (1024 * 1024)
                 return entry, fp, sz
 
@@ -664,7 +711,12 @@ def mirror_to_youtube(url: str, bitrate: str | None = "192", job_id: str | None 
             filepath = None
             size_mb = 0.0
             last_exc = None
-            for attempt_query in (query, f"{title} {artist} official audio"):
+            attempt_queries = (
+                (query, f"{title} {artist} official audio")
+                if kind == "audio"
+                else (f"{title} {artist} official video", f"{title} {artist} music video", query)
+            )
+            for attempt_query in attempt_queries:
                 try:
                     entry, filepath, size_mb = _try_download(attempt_query)
                     break
@@ -686,17 +738,17 @@ def mirror_to_youtube(url: str, bitrate: str | None = "192", job_id: str | None 
                 error=None,
                 downloaded_at=downloaded_at,
             )
-            # Write ID3 tags using YouTube thumbnail + Spotify metadata
-            upload_date = entry.get("upload_date", "")
-            year = upload_date[:4] if upload_date and len(upload_date) >= 4 else None
-            _write_id3_tags(
-                filepath,
-                title=entry.get("title", title),
-                artist=artist,
-                album=track.get("album"),
-                year=year,
-                artwork_url=entry.get("thumbnail"),
-            )
+            if kind == "audio":
+                upload_date = entry.get("upload_date", "")
+                year = upload_date[:4] if upload_date and len(upload_date) >= 4 else None
+                _write_id3_tags(
+                    filepath,
+                    title=entry.get("title", title),
+                    artist=artist,
+                    album=track.get("album"),
+                    year=year,
+                    artwork_url=entry.get("thumbnail"),
+                )
             items.append(
                 {
                     "title": entry.get("title", title),

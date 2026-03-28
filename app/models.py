@@ -143,6 +143,8 @@ class SpotifyPlaylistResponse(BaseModel):
 
 class SpotifyMirrorRequest(BaseModel):
     url: str = Field(..., description="Spotify playlist/album/artist URL or URI")
+    kind: str = Field("audio", description="audio or video")
+    resolution: str | None = Field(None, description="resolution for video; highest by default")
     bitrate: str | None = Field("192", description="MP3 bitrate for mirrored downloads")
     job_id: str | None = Field(None, description="Client-supplied job id for progress tracking")
 
