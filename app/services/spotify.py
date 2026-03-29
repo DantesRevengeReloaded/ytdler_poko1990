@@ -340,6 +340,29 @@ def _sanitize(name: str) -> str:
     return clean or "playlist"
 
 
+def _is_restricted_playlist_response(status_code: int, response_text: str) -> bool:
+    if status_code == 404:
+        return True
+    if status_code != 403:
+        return False
+
+    normalized = (response_text or "").lower()
+    return (
+        "active premium subscription required" in normalized
+        or "premium subscription required for the owner of the app" in normalized
+    )
+
+
+def _is_restricted_playlist_error(error: Exception) -> bool:
+    message = str(error)
+    if "__playlist_access_restricted__" in message:
+        return True
+
+    match = re.search(r"\((\d{3})\)", message)
+    status_code = int(match.group(1)) if match else 0
+    return _is_restricted_playlist_response(status_code, message)
+
+
 def _fetch_playlist_meta(playlist_id: str, token: str) -> Dict:
     url = f"{_API_BASE}/playlists/{playlist_id}"
     params = {"market": "US", "fields": "name,description,owner(display_name),tracks(total)"}
@@ -348,8 +371,8 @@ def _fetch_playlist_meta(playlist_id: str, token: str) -> Dict:
         _TOKEN_CACHE["access_token"] = None
         token = _request_token()
         resp = requests.get(url, headers=_authorized_headers(token), params=params, timeout=10)
-    if resp.status_code == 404:
-        raise SpotifyAPIError("__editorial_404__")
+    if _is_restricted_playlist_response(resp.status_code, resp.text):
+        raise SpotifyAPIError("__playlist_access_restricted__")
     if resp.status_code != 200:
         raise SpotifyAPIError(f"Spotify playlist fetch failed ({resp.status_code}): {resp.text}")
     return resp.json()
@@ -382,6 +405,8 @@ def _fetch_playlist_tracks(playlist_id: str, token: str, max_items: int = 200) -
             token = _request_token()
             headers = _authorized_headers(token)
             resp = requests.get(url, headers=headers, params=params, timeout=10)
+        if _is_restricted_playlist_response(resp.status_code, resp.text):
+            raise SpotifyAPIError("__playlist_access_restricted__")
         if resp.status_code != 200:
             raise SpotifyAPIError(f"Spotify tracks fetch failed ({resp.status_code}): {resp.text}")
         data = resp.json()
@@ -497,25 +522,26 @@ def get_playlist_details(url: str) -> Dict:
                 "source_type": "playlist",
             }
         except SpotifyAPIError as e:
-            if "__editorial_404__" not in str(e):
+            if not _is_restricted_playlist_error(e):
                 raise
-            # Editorial/restricted playlist — try YouTube Music fallback
+            # Restricted playlist — try YouTube Music fallback
             oembed_title = _oembed_title(url) or f"spotify_playlist_{resource_id[:8]}"
             logger.warning(
-                f"Spotify API blocked playlist '{oembed_title}' (editorial restriction). "
+                f"Spotify API blocked playlist '{oembed_title}' (restricted access). "
                 "Falling back to YouTube Music."
             )
             tracks, yt_title = _ytmusic_tracks_for_query(oembed_title)
             if not tracks:
                 raise SpotifyAPIError(
-                    f"Playlist '{oembed_title}' is an editorial/restricted Spotify playlist that cannot be accessed "
-                    "via the API from a server. YouTube Music fallback also found no matching tracks. "
-                    "To fix this permanently, apply for Extended Quota Mode on the Spotify Developer Dashboard."
+                    f"Playlist '{oembed_title}' is blocked by Spotify API access restrictions and could not be read "
+                    "with the app's current auth mode. YouTube Music fallback also found no matching tracks. "
+                    "To avoid this for more playlists, connect a Spotify account through OAuth, configure an sp_dc cookie, "
+                    "or apply for Extended Quota Mode on the Spotify Developer Dashboard."
                 )
             return {
-                "playlist_title": oembed_title,
-                "description": f"YouTube Music fallback for Spotify editorial playlist '{oembed_title}'",
-                "owner": "Spotify editorial (via YouTube Music)",
+                "playlist_title": yt_title or oembed_title,
+                "description": f"YouTube Music fallback for restricted Spotify playlist '{oembed_title}'",
+                "owner": "Spotify restricted playlist (via YouTube Music)",
                 "track_count": len(tracks),
                 "tracks": tracks,
                 "source_type": "playlist",

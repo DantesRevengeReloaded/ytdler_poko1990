@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Poko1990 Downloader</title>
   <link rel="icon" href="/static/pokoapp.ico" />
-  <link rel="stylesheet" href="/static/styles.css?v=10" />
+  <link rel="stylesheet" href="/static/styles.css?v=14" />
 </head>
 <body>
   <div class="ambient-layer" aria-hidden="true"></div>
@@ -23,52 +23,27 @@
               <span class="hero-kicker-note">Local media control center</span>
             </div>
             <h1>Poko1990 Downloader</h1>
-            <p class="hero-copy">Single workspace for YouTube downloads, playlist jobs, and Spotify-based retrieval.</p>
+            <p class="hero-copy">Local control for YouTube downloads, playlist jobs, and Spotify retrieval.</p>
+            <p class="hero-note">Batch-ready. History-aware. Output-first.</p>
           </div>
         </div>
-        <div class="hero-sidecard">
-          <div class="hero-context">
-            <div class="hero-about">
-              <p class="eyebrow">About</p>
-              <p class="hero-about-copy">Built for local batch work with visible progress, stored history, and direct access to output folders.</p>
-            </div>
-            <div class="hero-meta" aria-label="Application summary">
-              <div class="hero-meta-row">
-                <span class="hero-meta-label">Mode</span>
-                <span class="hero-meta-value">Local desktop workflow</span>
-              </div>
-              <div class="hero-meta-row">
-                <span class="hero-meta-label">Sources</span>
-                <span class="hero-meta-value">YouTube and Spotify mirror</span>
-              </div>
-            </div>
+        <div class="hero-utility" aria-label="Quick actions">
+          <div class="hero-statusline">
+            <span class="hero-utility-copy">Quick access</span>
           </div>
-          <div class="hero-toolbar">
-            <div class="hero-actions">
-              <a class="icon-btn" href="https://www.youtube.com" target="_blank" rel="noreferrer" aria-label="Open YouTube">
+          <div class="hero-actionrail">
+            <a class="icon-btn hero-action-pill" href="https://www.youtube.com" target="_blank" rel="noreferrer" aria-label="Open YouTube">
                 <img src="/static/assets/icons/youtube.svg" alt="YouTube" />
-              </a>
-              <a class="icon-btn" href="https://open.spotify.com" target="_blank" rel="noreferrer" aria-label="Open Spotify">
+            </a>
+            <span class="hero-action-sep" aria-hidden="true"></span>
+            <a class="icon-btn hero-action-pill" href="https://open.spotify.com" target="_blank" rel="noreferrer" aria-label="Open Spotify">
                 <img src="/static/assets/icons/spotify.svg" alt="Spotify" />
-              </a>
-              <span id="spotify-auth-badge" class="pill">Checking auth...</span>
-            </div>
-            <button id="settings-trigger" class="btn-ghost settings-trigger" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="settings-panel">Settings</button>
+            </a>
+            <span class="hero-action-sep" aria-hidden="true"></span>
+            <span id="spotify-auth-badge" class="pill hero-action-pill hero-status-pill">Checking auth...</span>
+            <span class="hero-action-sep" aria-hidden="true"></span>
+            <button id="settings-trigger" class="btn-ghost settings-trigger hero-action-pill" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="settings-panel">Settings</button>
           </div>
-        </div>
-      </div>
-      <div class="hero-stats" id="hero-stats">
-        <div class="stat-chip">
-          <img src="/static/assets/icons/arrow-down-tray.svg" alt="Downloads" />
-          <div><span>Total items</span><strong id="hero-total-items">0</strong></div>
-        </div>
-        <div class="stat-chip">
-          <img src="/static/assets/icons/chart-bar.svg" alt="Storage" />
-          <div><span>Total size</span><strong id="hero-total-size">0 MB</strong></div>
-        </div>
-        <div class="stat-chip">
-          <img src="/static/assets/icons/clock.svg" alt="Recent" />
-          <div><span>Recent activity</span><strong id="hero-recent">No entries</strong></div>
         </div>
       </div>
     </header>
@@ -150,28 +125,6 @@
       </section>
     </section>
 
-    <section class="utility-grid">
-      <section class="card-glass support-card" id="stats-card">
-        <div class="card-head">
-          <div><p class="eyebrow">Insights</p><h3>Usage overview</h3></div>
-          <button id="refresh-stats" class="btn-ghost">Refresh</button>
-        </div>
-        <div id="stats" class="stats-grid"></div>
-        <div id="stats-breakdown" class="stats-breakdown"></div>
-      </section>
-
-      <section class="card-glass support-card" id="output-card">
-        <div class="card-head"><div><p class="eyebrow">Output</p><h3>Folders</h3></div></div>
-        <p id="output-root" class="path-line">Resolving output folder...</p>
-        <div id="output-folders" class="folder-list"></div>
-      </section>
-
-      <section class="card-glass support-card" id="queue-card">
-        <div class="card-head"><div><p class="eyebrow">Queue</p><h3>History snapshot</h3></div></div>
-        <div id="queue-summary" class="queue-summary">Loading summary...</div>
-      </section>
-    </section>
-
     <section class="workspace-grid">
       <section class="card-glass workspace-card" id="library-card">
         <div class="card-head">
@@ -236,6 +189,32 @@
           <button id="history-load-more" class="btn-ghost" hidden>Load more</button>
         </div>
       </section>
+    </section>
+
+    <section class="card-glass summary-hero" id="summary-card">
+      <div class="card-head summary-head">
+        <div><p class="eyebrow">Overview</p><h3>Workspace summary</h3></div>
+        <button id="refresh-stats" class="btn-ghost">Refresh</button>
+      </div>
+      <div class="summary-layout">
+        <section class="summary-block summary-overview">
+          <p class="summary-copy">A final snapshot of storage and latest activity.</p>
+          <div class="summary-overview-grid">
+            <div id="stats" class="stats-grid"></div>
+            <div class="summary-divider" aria-hidden="true"></div>
+            <div class="summary-activity">
+              <p class="summary-label">Recent activity</p>
+              <div id="queue-summary" class="queue-summary">Loading summary...</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="summary-block summary-output">
+          <p class="summary-label">Output root</p>
+          <p id="output-root" class="path-line">Resolving output folder...</p>
+          <div id="output-folders" class="folder-list"></div>
+        </section>
+      </div>
     </section>
   </main>
   <div id="settings-backdrop" class="settings-backdrop" hidden aria-hidden="true"></div>

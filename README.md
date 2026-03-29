@@ -264,7 +264,7 @@ Handles Spotify-specific logic:
 - client-credentials token flow
 - optional `sp_dc` cookie flow
 - playlist, album, and artist metadata fetch
-- editorial playlist fallback through YouTube Music lookup
+- restricted playlist fallback through YouTube Music lookup when Spotify blocks server-side access
 - Spotify-to-YouTube mirror workflow
 
 Spotify mirror flow:
@@ -383,6 +383,7 @@ The script reads:
 
 - This project is designed for local use.
 - Spotify mirroring depends on YouTube search quality and may not always match perfectly.
+- Some Spotify playlists are blocked by Spotify for app-level API access; the app now falls back to YouTube Music lookup for those restricted cases when possible.
 - Large playlists can generate many files quickly.
 - The codebase currently keeps backend orchestration, provider integration, and desktop-style behavior in one app, so future modularization would help.
 

@@ -322,10 +322,7 @@ async function postDownload() {
       }),
     });
 
-    if (!res.ok) {
-      const detail = await res.text();
-      throw new Error(detail || 'Request failed');
-    }
+    if (!res.ok) throw new Error(await readApiError(res, 'Request failed'));
 
     const data = await res.json();
     renderResult(data, 'single');
@@ -385,10 +382,7 @@ async function postPlaylist() {
       }),
     });
 
-    if (!res.ok) {
-      const detail = await res.text();
-      throw new Error(detail || 'Playlist request failed');
-    }
+    if (!res.ok) throw new Error(await readApiError(res, 'Playlist request failed'));
 
     const data = await res.json();
     renderResult(data, 'playlist');
@@ -449,10 +443,7 @@ async function mirrorSpotifyPlaylist() {
       }),
     });
 
-    if (!res.ok) {
-      const detail = await res.text();
-      throw new Error(detail || 'Spotify mirror failed');
-    }
+    if (!res.ok) throw new Error(await readApiError(res, 'Spotify mirror failed', 'spotify'));
 
     const data = await res.json();
     renderResult(data, 'spotify');
@@ -503,18 +494,11 @@ async function loadStats() {
     statsEl.innerHTML = `
       <div class="stat-tile"><div class="label">Total items</div><div class="value">${stats.total_items}</div></div>
       <div class="stat-tile"><div class="label">Total size</div><div class="value">${formatSize(stats.total_size_mb)}</div></div>
-      <div class="stat-tile"><div class="label">Downloads logged</div><div class="value">${dHist.total || 0}</div></div>
-      <div class="stat-tile"><div class="label">Spotify logged</div><div class="value">${sHist.total || 0}</div></div>
     `;
-
-    $('#hero-total-items').textContent = String(stats.total_items);
-    $('#hero-total-size').textContent = formatSize(stats.total_size_mb);
-    $('#hero-recent').textContent = (dHist.items && dHist.items.length) ? formatDate(dHist.items[0].downloaded_date) : 'No entries';
 
     if (breakdownRes.ok) {
       const bd = await breakdownRes.json();
       latestStorage = bd.storage || [];
-      renderBreakdown(bd);
       renderOutputFolders(latestStorage);
     }
 
@@ -522,22 +506,6 @@ async function loadStats() {
   } catch (err) {
     statsEl.innerHTML = `<div class="state-card error">Stats error: ${escapeHtml(err.message)}</div>`;
   }
-}
-
-function renderBreakdown(data) {
-  const el = $('#stats-breakdown');
-  if (!el) return;
-  const breakdown = data.breakdown || [];
-  const storage = data.storage || [];
-
-  if (!breakdown.length && !storage.length) {
-    el.innerHTML = '<div class="state-card">No breakdown data yet.</div>';
-    return;
-  }
-
-  const typeRow = breakdown.map((b) => `<span class="breakdown-pill">${escapeHtml(b.type)}: ${b.count} items · ${formatSize(b.total_mb)}</span>`).join('');
-  const storeRow = storage.map((s) => `<span class="breakdown-pill">${escapeHtml(s.directory)}: ${s.file_count} files · ${formatSize(s.size_mb)}</span>`).join('');
-  el.innerHTML = `<div class="breakdown-row">${typeRow}</div><div class="breakdown-row">${storeRow}</div>`;
 }
 
 async function loadOutputRoot() {
@@ -548,9 +516,11 @@ async function loadOutputRoot() {
     const res = await fetch('/api/v1/files/root');
     if (!res.ok) throw new Error('Could not resolve output root');
     const data = await res.json();
-    rootEl.textContent = `Base folder: ${data.root}`;
+    rootEl.textContent = data.root;
+    rootEl.title = data.root;
   } catch {
-    rootEl.textContent = 'Base folder: configured downloads directory';
+    rootEl.textContent = 'Configured downloads directory';
+    rootEl.title = 'Configured downloads directory';
   }
 }
 
@@ -579,8 +549,6 @@ function renderQueueSummary(data) {
   const lastS = data.lastSpotify ? formatDate(data.lastSpotify.downloaded_date) : 'None';
 
   el.innerHTML = `
-    <div class="queue-row"><span>Download history entries</span><strong>${data.downloads}</strong></div>
-    <div class="queue-row"><span>Spotify history entries</span><strong>${data.spotify}</strong></div>
     <div class="queue-row"><span>Last download</span><strong>${escapeHtml(lastD)}</strong></div>
     <div class="queue-row"><span>Last Spotify mirror</span><strong>${escapeHtml(lastS)}</strong></div>
   `;
@@ -1131,6 +1099,90 @@ function clearResult() {
 
 function rowMarkup(label, value) {
   return `<div class="result-row"><span class="result-label">${escapeHtml(String(label))}</span><span class="value">${escapeHtml(String(value))}</span></div>`;
+}
+
+async function readApiError(response, fallbackMessage, kind = 'generic') {
+  let raw = '';
+
+  try {
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      const data = await response.json();
+      raw = extractApiErrorMessage(data);
+    } else {
+      raw = await response.text();
+    }
+  } catch {
+    raw = '';
+  }
+
+  const message = cleanErrorMessage(raw || fallbackMessage);
+  if (kind === 'spotify') return formatSpotifyError(message);
+  return message || fallbackMessage;
+}
+
+function extractApiErrorMessage(payload) {
+  if (payload == null) return '';
+  if (typeof payload === 'string') return payload;
+  if (typeof payload.detail === 'string') return payload.detail;
+  if (Array.isArray(payload.detail)) {
+    return payload.detail
+      .map((item) => {
+        if (typeof item === 'string') return item;
+        if (item && typeof item.msg === 'string') return item.msg;
+        return '';
+      })
+      .filter(Boolean)
+      .join('; ');
+  }
+  if (typeof payload.message === 'string') return payload.message;
+  return '';
+}
+
+function cleanErrorMessage(raw) {
+  if (!raw) return '';
+
+  let message = String(raw).trim();
+
+  try {
+    const parsed = JSON.parse(message);
+    const extracted = extractApiErrorMessage(parsed);
+    if (extracted) message = extracted;
+  } catch {}
+
+  if ((message.startsWith('"') && message.endsWith('"')) || (message.startsWith("'") && message.endsWith("'"))) {
+    message = message.slice(1, -1);
+  }
+
+  try {
+    const parsedNested = JSON.parse(message);
+    const extractedNested = extractApiErrorMessage(parsedNested);
+    if (extractedNested) message = extractedNested;
+  } catch {}
+
+  return message.replace(/^error\s*[:\-]\s*/i, '').trim();
+}
+
+function formatSpotifyError(message) {
+  const normalized = (message || '').toLowerCase();
+  if (!normalized) return 'Spotify download failed.';
+
+  if (normalized.includes('blocked by spotify api access restrictions')) {
+    return 'Spotify blocked direct access to this playlist, and no matching fallback tracks were found. Connect Spotify OAuth or configure an sp_dc cookie for better access.';
+  }
+
+  if (
+    normalized.includes('active premium subscription required') ||
+    normalized.includes('premium subscription required for the owner of the app')
+  ) {
+    return 'Spotify blocked this playlist for the app\'s current access mode. Try connecting Spotify OAuth or configuring an sp_dc cookie.';
+  }
+
+  if (normalized.includes('unexpected spotify mirror error')) {
+    return 'Spotify download failed unexpectedly. Check the server logs and try again.';
+  }
+
+  return message;
 }
 
 function isValidUrl(value, prefixes) {
