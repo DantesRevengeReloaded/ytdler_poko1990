@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Poko1990 Downloader</title>
   <link rel="icon" href="/static/pokoapp.ico" />
-  <link rel="stylesheet" href="/static/styles.css?v=14" />
+  <link rel="stylesheet" href="/static/styles.css?v=21" />
 </head>
 <body>
   <div class="ambient-layer" aria-hidden="true"></div>
@@ -40,57 +40,13 @@
                 <img src="/static/assets/icons/spotify.svg" alt="Spotify" />
             </a>
             <span class="hero-action-sep" aria-hidden="true"></span>
-            <span id="spotify-auth-badge" class="pill hero-action-pill hero-status-pill">Checking auth...</span>
-            <span class="hero-action-sep" aria-hidden="true"></span>
-            <button id="settings-trigger" class="btn-ghost settings-trigger hero-action-pill" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="settings-panel">Settings</button>
+            <button id="settings-trigger" class="icon-btn hero-action-pill" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="settings-panel" aria-label="Settings">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
           </div>
         </div>
       </div>
     </header>
-
-    <section class="primary-grid">
-      <section class="card-glass action-card tone-green">
-        <div class="card-head">
-          <div><p class="eyebrow">Main action</p><h3>Single Download</h3></div>
-          <span class="badge">One-off</span>
-        </div>
-        <label for="url">YouTube single URL</label>
-        <input id="url" type="url" placeholder="https://www.youtube.com/watch?v=..." />
-        <div class="row"><label for="kind">Kind</label><select id="kind"><option value="audio">Audio (mp3)</option><option value="video">Video</option></select></div>
-        <div class="row" id="res-row"><label for="resolution">Resolution</label><select id="resolution"><option value="highest">Highest</option><option value="720p">720p</option><option value="480p">480p</option><option value="360p">360p</option></select></div>
-        <div class="row" id="br-row" hidden><label for="bitrate">Bitrate</label><select id="bitrate"><option value="192">192 kbps</option><option value="256">256 kbps</option><option value="320">320 kbps</option></select></div>
-        <div class="helper">Saves into the singles output folder.</div>
-        <div class="action-footer"><button id="submit" class="btn-primary">Download</button><div id="status" class="status"></div></div>
-      </section>
-
-      <section class="card-glass action-card tone-blue">
-        <div class="card-head">
-          <div><p class="eyebrow">Main action</p><h3>Playlist Download</h3></div>
-          <span class="badge ghost">Multi</span>
-        </div>
-        <label for="pl-url">YouTube playlist URL</label>
-        <input id="pl-url" type="url" placeholder="https://www.youtube.com/playlist?list=..." />
-        <div class="row"><label for="pl-kind">Kind</label><select id="pl-kind"><option value="audio">Audio (mp3)</option><option value="video">Video</option></select></div>
-        <div class="row" id="pl-res-row"><label for="pl-resolution">Resolution</label><select id="pl-resolution"><option value="highest">Highest</option><option value="720p">720p</option><option value="480p">480p</option><option value="360p">360p</option></select></div>
-        <div class="row" id="pl-br-row" hidden><label for="pl-bitrate">Bitrate</label><select id="pl-bitrate"><option value="192">192 kbps</option><option value="256">256 kbps</option><option value="320">320 kbps</option></select></div>
-        <div class="helper">Files are grouped by playlist name.</div>
-        <div class="action-footer"><button id="pl-submit" class="btn-secondary">Download Playlist</button><div id="pl-status" class="status"></div></div>
-      </section>
-
-      <section class="card-glass action-card tone-amber" id="spotify-card">
-        <div class="card-head">
-          <div><p class="eyebrow">Main action</p><h3>Spotify Retriever</h3></div>
-          <span class="badge ghost">Mirror</span>
-        </div>
-        <label for="sp-url">Spotify playlist/artist/album URL</label>
-        <input id="sp-url" type="url" placeholder="https://open.spotify.com/playlist/..." />
-        <div class="row"><label for="sp-kind">Kind</label><select id="sp-kind"><option value="audio" selected>Audio (mp3)</option><option value="video">Video</option></select></div>
-        <div class="row" id="sp-res-row" hidden><label for="sp-resolution">Resolution</label><select id="sp-resolution"><option value="highest">Highest</option><option value="720p">720p</option><option value="480p">480p</option><option value="360p">360p</option></select></div>
-        <div class="row" id="sp-br-row"><label for="sp-bitrate">Bitrate</label><select id="sp-bitrate"><option value="192" selected>192 kbps</option><option value="256">256 kbps</option><option value="320">320 kbps</option></select></div>
-        <div class="helper">Uses YouTube as source and stores audio or video files in spotify folders.</div>
-        <div class="action-footer"><button id="sp-submit" class="btn-spotify">Download Spotify list</button><div id="sp-status" class="status"></div></div>
-      </section>
-    </section>
 
     <section class="activity-strip">
       <section class="card-glass live-status" id="live-status">
@@ -115,13 +71,71 @@
       </section>
     </section>
 
-    <section class="result-strip" id="result-strip" hidden>
+    <section class="primary-grid">
+      <section class="card-glass action-card tone-green" id="unified-card">
+        <div class="card-head">
+          <div>
+            <p class="eyebrow" id="unified-eyebrow">Select service</p>
+            <select id="service-type" class="header-select">
+              <option value="single" selected>Single Download</option>
+              <option value="playlist">Playlist Download</option>
+              <option value="spotify">Spotify Retriever</option>
+            </select>
+          </div>
+          <span class="badge" id="unified-badge">One-off</span>
+        </div>
+
+        <label for="unified-url" id="unified-url-label">YouTube single URL</label>
+        <input id="unified-url" type="url" placeholder="https://www.youtube.com/watch?v=..." />
+        
+        <div class="row">
+          <label for="unified-kind">Kind</label>
+          <select id="unified-kind">
+            <option value="audio" selected>Audio (mp3)</option>
+            <option value="video">Video</option>
+          </select>
+        </div>
+        
+        <div class="row" id="unified-res-row" hidden>
+          <label for="unified-resolution">Resolution</label>
+          <select id="unified-resolution">
+            <option value="highest">Highest</option>
+            <option value="720p">720p</option>
+            <option value="480p">480p</option>
+            <option value="360p">360p</option>
+          </select>
+        </div>
+        
+        <div class="row" id="unified-br-row">
+          <label for="unified-bitrate">Bitrate</label>
+          <select id="unified-bitrate">
+            <option value="192" selected>192 kbps</option>
+            <option value="256">256 kbps</option>
+            <option value="320">320 kbps</option>
+          </select>
+        </div>
+        
+        <div class="helper" id="unified-helper">Saves into the singles output folder.</div>
+        
+        <div class="action-footer">
+          <button id="unified-submit" class="btn-primary">Download</button>
+          <div id="unified-status" class="status"></div>
+        </div>
+      </section>
       <section class="card-glass result-card" id="result">
         <div class="card-head">
           <div><p class="eyebrow">Result</p><h3>Download summary</h3></div>
-          <span id="result-kind" class="badge ghost"></span>
+          <span id="result-kind" class="badge ghost">Waiting</span>
         </div>
-        <div id="result-body" class="result-body"></div>
+        <div id="result-body" class="result-body">
+          <div class="empty-state">
+            <div class="empty-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            </div>
+            <h4>Ready to download</h4>
+            <p class="muted">Enter a URL and start a download. The summary will appear here.</p>
+          </div>
+        </div>
       </section>
     </section>
 
@@ -129,44 +143,41 @@
       <section class="card-glass workspace-card" id="library-card">
         <div class="card-head">
           <div><p class="eyebrow">Workspace</p><h3>Library</h3></div>
-          <button id="refresh-library" class="btn-ghost">Refresh</button>
         </div>
         <div class="library-controls">
-          <label for="library-playlist-select">Selected playlist</label>
-          <select id="library-playlist-select" class="library-select"></select>
+          <div style="display:flex; gap: 8px;">
+            <div style="flex: 1;">
+              <label for="library-playlist-select">Source Category</label>
+              <select id="library-playlist-select" class="library-select"></select>
+            </div>
+            <div style="flex: 1;">
+              <label for="library-subfolder-select">Playlist / Folder</label>
+              <select id="library-subfolder-select" class="library-select">
+                <option value="all">All</option>
+              </select>
+            </div>
+            <div style="flex: 0.6;">
+              <label for="library-sort-select">Sort by</label>
+              <select id="library-sort-select" class="library-select">
+                <option value="default">Default</option>
+                <option value="a-z">A-Z</option>
+                <option value="z-a">Z-A</option>
+                <option value="newest">Newest</option>
+                <option value="oldest">Oldest</option>
+              </select>
+            </div>
+          </div>
         </div>
         <div id="library-summary" class="library-summary">No playlist selected.</div>
-        <section id="player-shell" class="player-shell" hidden>
-          <div class="player-main">
-            <div class="player-track">
-              <div id="player-title" class="player-title">No track selected</div>
-              <div id="player-meta" class="player-meta">Choose a song from the library</div>
-            </div>
-            <div class="player-controls">
-              <button id="player-prev" class="btn-ghost player-btn" type="button" aria-label="Previous track">Previous</button>
-              <button id="player-toggle" class="btn-primary player-btn player-btn-main" type="button" aria-label="Play or pause">Play</button>
-              <button id="player-next" class="btn-ghost player-btn" type="button" aria-label="Next track">Next</button>
-            </div>
-          </div>
-          <div class="player-progress">
-            <span id="player-current-time" class="player-time">0:00</span>
-            <input id="player-seek" class="player-seek" type="range" min="0" max="0" step="1" value="0" aria-label="Seek playback" />
-            <span id="player-duration" class="player-time">0:00</span>
-          </div>
-        </section>
-        <audio id="audio-player" class="audio-player" preload="metadata"></audio>
         <div id="library-body" class="library-body">Loading files...</div>
         <div class="library-footer">
           <button id="library-load-more" class="btn-ghost" hidden>Load more</button>
         </div>
       </section>
 
-      <section class="card-glass workspace-card" id="history-card">
+      <section class="card-glass workspace-card" id="history-card" style="display: none;">
         <div class="card-head">
           <div><p class="eyebrow">Workspace</p><h3>History</h3></div>
-          <div class="history-actions">
-            <button id="refresh-history" class="btn-ghost">Refresh</button>
-          </div>
         </div>
         <div class="history-controls">
           <div class="history-control-grid">
@@ -194,7 +205,6 @@
     <section class="card-glass summary-hero" id="summary-card">
       <div class="card-head summary-head">
         <div><p class="eyebrow">Overview</p><h3>Workspace summary</h3></div>
-        <button id="refresh-stats" class="btn-ghost">Refresh</button>
       </div>
       <div class="summary-layout">
         <section class="summary-block summary-overview">
@@ -211,7 +221,7 @@
 
         <section class="summary-block summary-output">
           <p class="summary-label">Output root</p>
-          <p id="output-root" class="path-line">Resolving output folder...</p>
+          <p id="output-root" class="path-line clickable-path">Resolving output folder...</p>
           <div id="output-folders" class="folder-list"></div>
         </section>
       </div>
@@ -226,9 +236,16 @@
       </div>
       <button id="settings-close" class="btn-ghost settings-close" type="button" aria-label="Close settings">Close</button>
     </div>
+    
     <div class="settings-section">
       <p class="settings-section-title">Display</p>
-      <label class="toggle"><input type="checkbox" id="setting-autorefresh" checked />Auto refresh stats and history</label>
+      <label class="settings-field">
+        <span>Theme</span>
+        <select id="setting-theme">
+          <option value="dark" selected>Dark (Default)</option>
+          <option value="light">Light</option>
+        </select>
+      </label>
       <label class="settings-field">
         <span>Density</span>
         <select id="setting-density">
@@ -236,30 +253,10 @@
           <option value="compact">Compact</option>
         </select>
       </label>
-      <label class="toggle"><input type="checkbox" id="setting-animations" checked />Enable subtle animations</label>
-      <label class="toggle"><input type="checkbox" id="setting-reduce-motion" />Reduce motion</label>
+      <label class="toggle" style="display: none;"><input type="checkbox" id="setting-autorefresh" checked />Auto refresh stats and history</label>
+      <label class="toggle" style="display: none;"><input type="checkbox" id="setting-animations" checked />Enable subtle animations</label>
     </div>
-    <div class="settings-section">
-      <p class="settings-section-title">Downloads</p>
-      <label class="settings-field">
-        <span>Preferred audio bitrate</span>
-        <select disabled>
-          <option>192 kbps</option>
-        </select>
-      </label>
-      <label class="settings-field">
-        <span>Preferred video quality</span>
-        <select disabled>
-          <option>Highest</option>
-        </select>
-      </label>
-      <label class="settings-field">
-        <span>Maximum parallel jobs</span>
-        <select disabled>
-          <option>1</option>
-        </select>
-      </label>
-    </div>
+
     <div class="settings-section">
       <p class="settings-section-title">Library / History</p>
       <label class="settings-field">
@@ -276,32 +273,62 @@
           <option value="exact">Exact</option>
         </select>
       </label>
+    </div>
+
+    <div class="settings-section">
+      <p class="settings-section-title">System</p>
       <label class="settings-field">
-        <span>Default selected playlist</span>
-        <input type="text" value="Coming soon" disabled />
+        <span>Core Packages</span>
+        <button id="btn-update-core" class="btn-golden" style="padding: 4px 12px; font-size: 0.9rem;">Update yt-dlp</button>
       </label>
     </div>
-    <div class="settings-section">
-      <p class="settings-section-title">Notifications</p>
-      <label class="toggle"><input type="checkbox" disabled />Toast on completion</label>
-      <label class="toggle"><input type="checkbox" disabled />Toast on failure</label>
-      <label class="settings-field">
-        <span>Auto-dismiss notifications</span>
-        <select disabled>
-          <option>2 seconds</option>
-        </select>
-      </label>
-    </div>
-    <div class="settings-section">
-      <p class="settings-section-title">Advanced</p>
-      <label class="settings-field">
-        <span>Default output folder</span>
-        <input type="text" value="Coming soon" disabled />
-      </label>
-      <label class="toggle"><input type="checkbox" disabled />Enable debug panel</label>
-      <label class="toggle"><input type="checkbox" disabled />Show internal logs</label>
+
+    <div class="settings-section" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(159, 180, 212, 0.1);">
+      <p class="settings-section-title" style="margin-bottom: 4px;">About Poko1990 Downloader</p>
+      <p style="font-size: 0.85rem; color: rgba(159, 180, 212, 0.7); margin: 0 0 12px; line-height: 1.4;">
+        Version 1.0.0<br/>
+        Local control center for YouTube downloads, playlist jobs, and Spotify retrieval. Batch-ready, history-aware, and output-first.
+      </p>
+      <div style="display: flex; gap: 8px;">
+        <button id="btn-open-logs" class="btn-ghost" style="font-size: 0.8rem; padding: 4px 8px; border-radius: 4px;">Open Application Logs</button>
+      </div>
     </div>
   </div>
-  <script src="/static/main.js?v=10"></script>
+
+  <div id="global-player" class="global-player">
+    <div class="global-player-inner">
+      <div class="player-track">
+        <div id="player-title" class="player-title">No track selected</div>
+        <div id="player-meta" class="player-meta">Choose a song from the library</div>
+      </div>
+      <div class="player-controls-wrap">
+        <div class="player-controls">
+          <button id="player-shuffle" class="btn-ghost player-btn" type="button" aria-label="Shuffle/Random" title="Shuffle">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.8"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>
+          </button>
+          <button id="player-prev" class="btn-ghost player-btn" type="button" aria-label="Previous track" title="Previous">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.8"><polygon points="19 20 9 12 19 4 19 20"></polygon><line x1="5" y1="19" x2="5" y2="5"></line></svg>
+          </button>
+          <button id="player-toggle" class="btn-ghost player-btn" type="button" aria-label="Play or pause" title="Play">
+            <div style="width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #3ddc97, #2ebf8c); display: flex; align-items: center; justify-content: center; color: #09101d;">
+              <svg class="icon-play" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transform: translateX(1px);"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+              <svg class="icon-pause" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+            </div>
+          </button>
+          <button id="player-next" class="btn-ghost player-btn" type="button" aria-label="Next track" title="Next">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.8"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" y1="5" x2="19" y2="19"></line></svg>
+          </button>
+        </div>
+        <div class="player-progress">
+          <span id="player-current-time" class="player-time">0:00</span>
+          <input id="player-seek" class="player-seek" type="range" min="0" max="0" step="1" value="0" aria-label="Seek playback" />
+          <span id="player-duration" class="player-time">0:00</span>
+        </div>
+      </div>
+    </div>
+    <audio id="audio-player" class="audio-player" preload="metadata"></audio>
+  </div>
+
+  <script src="/static/main.js?v=16"></script>
 </body>
 </html>

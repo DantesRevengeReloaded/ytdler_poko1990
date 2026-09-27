@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 import os
 import logging
 
-from app.api.routes import downloads, files, spotify, stats
+from app.api.routes import downloads, files, spotify, stats, system
 from app.core.config import get_settings
 from app.db.session import init_pool
 from app.services.db_manager import init_db
@@ -36,6 +36,7 @@ app.include_router(downloads.router)
 app.include_router(files.router)
 app.include_router(spotify.router)
 app.include_router(stats.router)
+app.include_router(system.router)
 
 base_dir = os.path.dirname(__file__)
 static_dir = os.path.join(base_dir, "web", "static")

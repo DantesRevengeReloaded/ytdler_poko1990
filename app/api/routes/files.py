@@ -74,6 +74,23 @@ async def get_output_root():
         },
     }
 
+@router.post("/open-root")
+async def open_output_root():
+    import sys
+    import subprocess
+    settings = get_settings()
+    download_dir = os.path.abspath(settings.download_dir)
+    try:
+        if sys.platform == "win32":
+            os.startfile(download_dir)
+        elif sys.platform == "darwin":
+            subprocess.run(["open", download_dir])
+        else:
+            subprocess.run(["xdg-open", download_dir])
+        return {"status": "success", "opened": download_dir}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.get("/stream/{filepath:path}")
 async def stream_file(filepath: str):

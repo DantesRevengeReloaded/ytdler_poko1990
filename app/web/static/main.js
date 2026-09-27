@@ -28,12 +28,16 @@ const settingsState = {
   reduceMotion: false,
   sizeFormat: 'adaptive',
   timeFormat: 'relative',
+  theme: 'dark'
 };
 const LIBRARY_PAGE_SIZE = 60;
 const libraryState = {
   allFiles: [],
   groups: [],
   selectedKey: '',
+  selectedCategory: 'all',
+  selectedSubfolder: 'all',
+  selectedSort: 'default',
   visibleCount: LIBRARY_PAGE_SIZE,
 };
 const playerState = {
@@ -123,6 +127,7 @@ function saveSettings() {
 }
 
 function applySettings() {
+  document.body.classList.toggle('theme-light', settingsState.theme === 'light');
   document.body.classList.toggle('compact', settingsState.density === 'compact');
   document.body.classList.toggle('no-anim', !settingsState.animations || settingsState.reduceMotion);
   if (!settingsState.animations || settingsState.reduceMotion) {
@@ -290,7 +295,7 @@ function startPolling(job, jobId) {
 }
 
 async function postDownload() {
-  const url = $('#url').value.trim();
+  const url = $('#unified-url').value.trim();
   if (!isValidUrl(url, ['https://www.youtube.com/', 'https://youtube.com/'])) {
     showToast('Enter a valid YouTube URL.', 'error');
     return;
@@ -298,7 +303,7 @@ async function postDownload() {
 
   clearResult();
   const jobId = createJobId();
-  setButtonLoading('#submit', true, 'Download');
+  setButtonLoading('#unified-submit', true, 'Download');
   setStatus('single', {
     phase: 'metadata',
     phaseLabel: 'Fetching metadata',
@@ -315,9 +320,9 @@ async function postDownload() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         url,
-        kind: $('#kind').value,
-        resolution: $('#resolution').value,
-        bitrate: $('#bitrate').value,
+        kind: $('#unified-kind').value,
+        resolution: $('#unified-resolution').value,
+        bitrate: $('#unified-bitrate').value,
         job_id: jobId,
       }),
     });
@@ -335,7 +340,7 @@ async function postDownload() {
       countLabel: '1/1',
     });
 
-    clearInputs(['#url']);
+    clearInputs(['#unified-url']);
     showToast('Download complete', 'success');
     await refreshData();
   } catch (err) {
@@ -345,12 +350,12 @@ async function postDownload() {
   }
 
   stopPolling();
-  setButtonLoading('#submit', false, 'Download');
-  $('#status').textContent = '';
+  setButtonLoading('#unified-submit', false, 'Download');
+  $('#unified-status').textContent = '';
 }
 
 async function postPlaylist() {
-  const url = $('#pl-url').value.trim();
+  const url = $('#unified-url').value.trim();
   if (!isValidUrl(url, ['https://www.youtube.com/playlist', 'https://youtube.com/playlist'])) {
     showToast('Enter a valid YouTube playlist URL.', 'error');
     return;
@@ -358,7 +363,7 @@ async function postPlaylist() {
 
   clearResult();
   const jobId = createJobId();
-  setButtonLoading('#pl-submit', true, 'Download Playlist');
+  setButtonLoading('#unified-submit', true, 'Download Playlist');
   setStatus('playlist', {
     phase: 'metadata',
     phaseLabel: 'Fetching metadata',
@@ -375,9 +380,9 @@ async function postPlaylist() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         url,
-        kind: $('#pl-kind').value,
-        resolution: $('#pl-resolution').value,
-        bitrate: $('#pl-bitrate').value,
+        kind: $('#unified-kind').value,
+        resolution: $('#unified-resolution').value,
+        bitrate: $('#unified-bitrate').value,
         job_id: jobId,
       }),
     });
@@ -395,7 +400,7 @@ async function postPlaylist() {
       countLabel: `${data.count || 0}/${data.count || 0}`,
     });
 
-    clearInputs(['#pl-url']);
+    clearInputs(['#unified-url']);
     showToast(`Playlist downloaded (${data.count || 0} items)`, 'success');
     await refreshData();
   } catch (err) {
@@ -405,12 +410,12 @@ async function postPlaylist() {
   }
 
   stopPolling();
-  setButtonLoading('#pl-submit', false, 'Download Playlist');
-  $('#pl-status').textContent = '';
+  setButtonLoading('#unified-submit', false, 'Download Playlist');
+  $('#unified-status').textContent = '';
 }
 
 async function mirrorSpotifyPlaylist() {
-  const url = $('#sp-url').value.trim();
+  const url = $('#unified-url').value.trim();
   if (!isValidUrl(url, ['https://open.spotify.com/', 'spotify:'])) {
     showToast('Enter a valid Spotify URL.', 'error');
     return;
@@ -418,7 +423,7 @@ async function mirrorSpotifyPlaylist() {
 
   clearResult();
   const jobId = createJobId();
-  setButtonLoading('#sp-submit', true, 'Download Spotify list');
+  setButtonLoading('#unified-submit', true, 'Download Spotify list');
   setStatus('spotify', {
     phase: 'metadata',
     phaseLabel: 'Fetching Spotify',
@@ -430,15 +435,15 @@ async function mirrorSpotifyPlaylist() {
   startPolling('spotify', jobId);
 
   try {
-    const kind = $('#sp-kind').value;
+    const kind = $('#unified-kind').value;
     const res = await fetch('/api/v1/spotify/mirror', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         url,
         kind,
-        resolution: $('#sp-resolution').value,
-        bitrate: $('#sp-bitrate').value || '192',
+        resolution: $('#unified-resolution').value,
+        bitrate: $('#unified-bitrate').value || '192',
         job_id: jobId,
       }),
     });
@@ -459,18 +464,18 @@ async function mirrorSpotifyPlaylist() {
       countLabel: `${done}/${count || '?'}`,
     });
 
-    $('#sp-status').textContent = `${data.playlist_title || 'Spotify list'}: ${done}/${count} tracks.`;
-    clearInputs(['#sp-url']);
+    $('#unified-status').textContent = `${data.playlist_title || 'Spotify list'}: ${done}/${count} tracks.`;
+    clearInputs(['#unified-url']);
     showToast(`${done}/${count} tracks mirrored`, 'success');
     await refreshData();
   } catch (err) {
     const msg = err.message || 'Spotify mirror failed';
-    $('#sp-status').textContent = msg;
+    $('#unified-status').textContent = msg;
     setStatus('spotify', { phase: 'error', phaseLabel: 'Error', message: msg, progress: 0, indeterminate: false, countLabel: '-' });
     showToast(msg, 'error');
   }
 
-  setButtonLoading('#sp-submit', false, 'Download Spotify list');
+  setButtonLoading('#unified-submit', false, 'Download Spotify list');
   stopPolling();
 }
 
@@ -554,15 +559,17 @@ function renderQueueSummary(data) {
   `;
 }
 
-async function loadLibrary() {
+async function loadLibrary(isSilent = false) {
   const body = $('#library-body');
   const selector = $('#library-playlist-select');
   const summary = $('#library-summary');
   const loadMoreBtn = $('#library-load-more');
   if (!body) return;
 
-  body.innerHTML = '<div class="state-card">Loading files...</div>';
-  if (summary) summary.textContent = 'Loading library...';
+  if (!isSilent && body.innerHTML.trim() === '') {
+    body.innerHTML = '<div class="state-card">Loading files...</div>';
+    if (summary) summary.textContent = 'Loading library...';
+  }
 
   try {
     const res = await fetch('/api/v1/files');
@@ -594,70 +601,88 @@ async function loadLibrary() {
 }
 
 function buildLibraryGroups(files) {
-  const map = new Map();
-  files.forEach((file) => {
-    const group = resolveLibraryGroup(file);
-    if (!map.has(group.key)) {
-      map.set(group.key, { key: group.key, label: group.label, files: [] });
-    }
-    map.get(group.key).files.push(file);
+  // Group by category (singles, playlists, spotify)
+  const cats = {
+    'all': { label: 'All Downloads', subfolders: new Map() },
+    'singledls': { label: 'Singles', subfolders: new Map() },
+    'playlists': { label: 'Playlists', subfolders: new Map() },
+    'spotify_playlists': { label: 'Spotify', subfolders: new Map() }
+  };
+  
+  files.forEach(file => {
+    const c = cats[file.category] || cats['all'];
+    const parts = String(file.path || '').split('/');
+    const folder = parts.length > 1 ? parts[1] : 'Root';
+    
+    // Add to specific category
+    if (!c.subfolders.has(folder)) c.subfolders.set(folder, []);
+    c.subfolders.get(folder).push(file);
+    
+    // Add to 'all'
+    if (!cats['all'].subfolders.has('all')) cats['all'].subfolders.set('all', []);
+    cats['all'].subfolders.get('all').push(file);
   });
-
-  const groups = Array.from(map.values()).map((g) => {
-    const totalSize = g.files.reduce((acc, item) => acc + (Number(item.size_mb) || 0), 0);
-    const latestModified = g.files.reduce((max, item) => Math.max(max, Number(item.modified) || 0), 0);
-    return { ...g, totalSize, latestModified };
-  }).sort((a, b) => b.files.length - a.files.length || a.label.localeCompare(b.label));
-
-  const allTotalSize = files.reduce((acc, item) => acc + (Number(item.size_mb) || 0), 0);
-  const allLatest = files.reduce((max, item) => Math.max(max, Number(item.modified) || 0), 0);
-  groups.unshift({
-    key: 'all',
-    label: 'All playlists',
-    files,
-    totalSize: allTotalSize,
-    latestModified: allLatest,
-  });
-
-  return groups;
-}
-
-function resolveLibraryGroup(file) {
-  const parts = String(file.path || '').split('/');
-  if (file.category === 'singledls') return { key: 'singledls', label: 'Singles' };
-  if (file.category === 'playlists') {
-    const folder = parts[1] || 'YouTube playlist';
-    return { key: `yt:${folder}`, label: `YouTube · ${folder}` };
-  }
-  if (file.category === 'spotify_playlists') {
-    const folder = parts[1] || 'Spotify playlist';
-    return { key: `sp:${folder}`, label: `Spotify · ${folder}` };
-  }
-  return { key: file.category || 'other', label: file.category || 'Other' };
+  
+  return cats;
 }
 
 function syncLibrarySelection() {
-  const keys = new Set(libraryState.groups.map((g) => g.key));
-  if (libraryState.selectedKey && keys.has(libraryState.selectedKey)) return;
-
-  const nonAll = libraryState.groups.filter((g) => g.key !== 'all');
-  libraryState.selectedKey = (nonAll[0] && nonAll[0].key) || 'all';
+  if (!libraryState.selectedCategory) libraryState.selectedCategory = 'all';
+  if (!libraryState.selectedSubfolder) libraryState.selectedSubfolder = 'all';
   libraryState.visibleCount = LIBRARY_PAGE_SIZE;
 }
 
 function renderLibrarySelector() {
-  const selector = $('#library-playlist-select');
-  if (!selector) return;
-
-  selector.innerHTML = libraryState.groups.map((group) => {
-    return `<option value="${escapeAttr(group.key)}">${escapeHtml(group.label)} (${group.files.length})</option>`;
-  }).join('');
-  selector.value = libraryState.selectedKey;
+  const catSelect = $('#library-playlist-select');
+  const subSelect = $('#library-subfolder-select');
+  if (!catSelect || !subSelect) return;
+  
+  if (catSelect.options.length === 0) {
+    catSelect.innerHTML = Object.keys(libraryState.groups).map(k => 
+      `<option value="${k}">${libraryState.groups[k].label}</option>`
+    ).join('');
+  }
+  catSelect.value = libraryState.selectedCategory;
+  
+  const currentCat = libraryState.groups[libraryState.selectedCategory];
+  if (libraryState.selectedCategory === 'all' || currentCat.subfolders.size <= 1) {
+    subSelect.innerHTML = '<option value="all">No folders</option>';
+    subSelect.disabled = true;
+    libraryState.selectedSubfolder = 'all';
+  } else {
+    subSelect.disabled = false;
+    let html = '<option value="all">All</option>';
+    for (const [folder, files] of currentCat.subfolders.entries()) {
+      if (folder === 'all') continue;
+      html += `<option value="${escapeAttr(folder)}">${escapeHtml(folder)} (${files.length})</option>`;
+    }
+    subSelect.innerHTML = html;
+    if (currentCat.subfolders.has(libraryState.selectedSubfolder)) {
+      subSelect.value = libraryState.selectedSubfolder;
+    } else {
+      subSelect.value = 'all';
+      libraryState.selectedSubfolder = 'all';
+    }
+  }
 }
 
 function getSelectedLibraryGroup() {
-  return libraryState.groups.find((g) => g.key === libraryState.selectedKey) || libraryState.groups[0] || null;
+  const cat = libraryState.groups[libraryState.selectedCategory];
+  if (!cat) return { files: [] };
+  
+  if (libraryState.selectedSubfolder === 'all') {
+    let allFiles = [];
+    for (const files of cat.subfolders.values()) {
+      allFiles = allFiles.concat(files);
+    }
+    // Remove duplicates if any
+    return { files: [...new Set(allFiles)] };
+  }
+  
+  return { files: cat.subfolders.get(libraryState.selectedSubfolder) || [] };
 }
+
+
 
 function getLibraryFileMeta(file) {
   const parts = String(file.path || '').split('/');
@@ -666,7 +691,7 @@ function getLibraryFileMeta(file) {
 }
 
 function renderPlayerState() {
-  const shell = $('#player-shell');
+  const shell = $('#global-player');
   const title = $('#player-title');
   const meta = $('#player-meta');
   const toggle = $('#player-toggle');
@@ -679,10 +704,19 @@ function renderPlayerState() {
 
   if (!shell || !title || !meta || !toggle || !prev || !next || !seek || !currentTime || !duration) return;
 
-  shell.hidden = !hasTrack;
+  // shell.hidden = !hasTrack; // Removed because global player should always be visible
   title.textContent = hasTrack ? playerState.currentTrack.name : 'No track selected';
   meta.textContent = hasTrack ? getLibraryFileMeta(playerState.currentTrack) : 'Choose a song from the library';
-  toggle.textContent = playerState.isPlaying ? 'Pause' : 'Play';
+  const iconPlay = toggle.querySelector('.icon-play');
+  const iconPause = toggle.querySelector('.icon-pause');
+  if (iconPlay && iconPause) {
+    iconPlay.style.display = playerState.isPlaying ? 'none' : 'block';
+    iconPause.style.display = playerState.isPlaying ? 'block' : 'none';
+    toggle.title = playerState.isPlaying ? 'Pause' : 'Play';
+  } else {
+    toggle.textContent = playerState.isPlaying ? 'Pause' : 'Play';
+  }
+  
   toggle.disabled = !hasTrack;
   prev.disabled = !hasTrack || playerState.currentIndex <= 0;
   next.disabled = !hasTrack || playerState.currentIndex < 0 || playerState.currentIndex >= playerState.queue.length - 1;
@@ -695,8 +729,9 @@ function renderPlayerState() {
   }
 }
 
-function syncPlayerWithLibrary() {
-  playerState.queue = (getSelectedLibraryGroup()?.files || []).filter((file) => file.type === 'audio');
+function syncPlayerWithLibrary(files = null) {
+  const sourceFiles = files || getSelectedLibraryGroup()?.files || [];
+  playerState.queue = sourceFiles.filter((file) => file.type === 'audio');
   if (!playerState.currentPath) {
     playerState.currentIndex = -1;
     playerState.currentTrack = null;
@@ -746,7 +781,6 @@ function playTrackAt(index) {
 
 function playTrackByPath(path) {
   if (!path) return;
-  syncPlayerWithLibrary();
   const index = playerState.queue.findIndex((file) => file.path === path);
   if (index === -1) return;
 
@@ -806,8 +840,8 @@ function renderLibraryRows() {
   const loadMoreBtn = $('#library-load-more');
   if (!body) return;
 
-  const selected = libraryState.groups.find((g) => g.key === libraryState.selectedKey) || libraryState.groups[0];
-  if (!selected) {
+  const selected = getSelectedLibraryGroup();
+  if (!selected || !selected.files || !selected.files.length) {
     playerState.queue = [];
     renderPlayerState();
     body.innerHTML = '<div class="state-card">No tracks available.</div>';
@@ -816,12 +850,31 @@ function renderLibraryRows() {
     return;
   }
 
-  syncPlayerWithLibrary();
+  // Sort files before taking visible subset
+  let sortedFiles = [...selected.files];
+  if (libraryState.selectedSort === 'a-z') {
+    sortedFiles.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  } else if (libraryState.selectedSort === 'z-a') {
+    sortedFiles.sort((a, b) => (b.name || '').localeCompare(a.name || ''));
+  } else if (libraryState.selectedSort === 'newest') {
+    sortedFiles.sort((a, b) => (b.modified || 0) - (a.modified || 0));
+  } else if (libraryState.selectedSort === 'oldest') {
+    sortedFiles.sort((a, b) => (a.modified || 0) - (b.modified || 0));
+  }
 
-  const visible = selected.files.slice(0, libraryState.visibleCount);
-  const latest = selected.latestModified ? formatDate(selected.latestModified) : '-';
+  syncPlayerWithLibrary(sortedFiles);
+
+  const visible = sortedFiles.slice(0, libraryState.visibleCount);
+  
+  const totalSize = selected.files.reduce((acc, item) => acc + (Number(item.size_mb) || 0), 0);
+  const latestModified = selected.files.reduce((max, item) => Math.max(max, Number(item.modified) || 0), 0);
+  const latest = latestModified ? formatDate(latestModified) : '-';
+  const label = libraryState.selectedCategory === 'all' ? 'All Downloads' : 
+                libraryState.groups[libraryState.selectedCategory]?.label + 
+                (libraryState.selectedSubfolder === 'all' ? '' : ` / ${libraryState.selectedSubfolder}`);
+
   if (summary) {
-    summary.textContent = `${selected.label} · ${selected.files.length} tracks · ${selected.totalSize.toFixed(2)} MB · Updated ${latest}`;
+    summary.textContent = `${label} · ${selected.files.length} tracks · ${totalSize.toFixed(2)} MB · Updated ${latest}`;
   }
 
   if (!visible.length) {
@@ -1022,35 +1075,13 @@ function renderHistoryRows() {
   }
 }
 
-async function loadSpotifyAuthStatus() {
-  const badge = $('#spotify-auth-badge');
-  if (!badge) return;
 
-  try {
-    const res = await fetch('/api/v1/spotify/auth/status');
-    if (!res.ok) throw new Error('status unavailable');
-    const data = await res.json();
-
-    if (data.connected) {
-      badge.textContent = 'Spotify connected';
-      badge.style.borderColor = 'rgba(50, 213, 131, 0.52)';
-      badge.style.color = '#a3f6cd';
-    } else {
-      badge.textContent = 'Spotify not connected';
-      badge.style.borderColor = 'rgba(249, 112, 102, 0.45)';
-      badge.style.color = '#ffb5ac';
-    }
-  } catch {
-    badge.textContent = 'Auth unknown';
-  }
-}
 
 function renderResult(data, variant) {
   const body = $('#result-body');
   const kindBadge = $('#result-kind');
   const result = $('#result');
-  const strip = $('#result-strip');
-  if (!body || !kindBadge || !result || !strip) return;
+  if (!body || !kindBadge || !result) return;
 
   if (variant === 'playlist') {
     const items = data.items || [];
@@ -1084,17 +1115,26 @@ function renderResult(data, variant) {
     ].join('');
   }
 
-  strip.hidden = false;
   result.hidden = false;
 }
 
 function clearResult() {
-  const strip = $('#result-strip');
+  const result = $('#result');
   const body = $('#result-body');
   const badge = $('#result-kind');
-  if (strip) strip.hidden = true;
-  if (body) body.innerHTML = '';
-  if (badge) badge.textContent = '';
+  if (body) {
+    body.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </div>
+        <h4>Ready to download</h4>
+        <p class="muted">Enter a URL and start a download. The summary will appear here.</p>
+      </div>
+    `;
+  }
+  if (badge) badge.textContent = 'Waiting';
+  if (result) result.hidden = false;
 }
 
 function rowMarkup(label, value) {
@@ -1307,6 +1347,7 @@ function initSettings() {
   const reduceMotion = $('#setting-reduce-motion');
   const sizeFormat = $('#setting-size-format');
   const timeFormat = $('#setting-time-format');
+  const theme = $('#setting-theme');
 
   if (autoRefresh) autoRefresh.checked = !!settingsState.autoRefresh;
   if (density) density.value = settingsState.density;
@@ -1314,6 +1355,7 @@ function initSettings() {
   if (reduceMotion) reduceMotion.checked = !!settingsState.reduceMotion;
   if (sizeFormat) sizeFormat.value = settingsState.sizeFormat;
   if (timeFormat) timeFormat.value = settingsState.timeFormat;
+  if (theme) theme.value = settingsState.theme || 'dark';
 
   if (autoRefresh) {
     autoRefresh.addEventListener('change', () => {
@@ -1366,6 +1408,14 @@ function initSettings() {
       await refreshData();
     });
   }
+
+  if (theme) {
+    theme.addEventListener('change', () => {
+      settingsState.theme = theme.value;
+      applySettings();
+      saveSettings();
+    });
+  }
 }
 
 function clearAutoRefresh() {
@@ -1378,24 +1428,124 @@ function clearAutoRefresh() {
 function scheduleAutoRefresh() {
   clearAutoRefresh();
   autoRefreshTimer = setInterval(() => {
-    refreshData();
+    refreshData(true);
   }, AUTO_REFRESH_MS);
 }
 
-async function refreshData() {
-  await Promise.all([loadStats(), loadLibrary(), loadHistory(), loadOutputRoot()]);
+async function refreshData(isAutoRefresh = false) {
+  await Promise.all([loadStats(), loadLibrary(isAutoRefresh), loadHistory(), loadOutputRoot()]);
 }
 
 function bindEvents() {
-  $('#submit')?.addEventListener('click', postDownload);
-  $('#pl-submit')?.addEventListener('click', postPlaylist);
-  $('#sp-submit')?.addEventListener('click', mirrorSpotifyPlaylist);
+  $('#unified-submit')?.addEventListener('click', () => {
+    const service = $('#service-type').value;
+    if (service === 'single') postDownload();
+    else if (service === 'playlist') postPlaylist();
+    else if (service === 'spotify') mirrorSpotifyPlaylist();
+  });
+  
+  $('#service-type')?.addEventListener('change', (e) => {
+    const service = e.target.value;
+    const card = $('#unified-card');
+    const badge = $('#unified-badge');
+    const urlLabel = $('#unified-url-label');
+    const urlInput = $('#unified-url');
+    const helper = $('#unified-helper');
+    const btn = $('#unified-submit');
+    
+    card.classList.remove('tone-green', 'tone-blue', 'tone-amber', 'tone-spotify');
+    badge.classList.remove('ghost');
+    
+    if (service === 'single') {
+      card.classList.add('tone-green');
+      badge.textContent = 'One-off';
+      urlLabel.textContent = 'YouTube single URL';
+      urlInput.placeholder = 'https://www.youtube.com/watch?v=...';
+      helper.textContent = 'Saves into the singles output folder.';
+      btn.textContent = 'Download';
+      btn.className = 'btn-primary';
+    } else if (service === 'playlist') {
+      card.classList.add('tone-blue');
+      badge.textContent = 'Multi';
+      badge.classList.add('ghost');
+      urlLabel.textContent = 'YouTube playlist URL';
+      urlInput.placeholder = 'https://www.youtube.com/playlist?list=...';
+      helper.textContent = 'Files are grouped by playlist name.';
+      btn.textContent = 'Download Playlist';
+      btn.className = 'btn-secondary';
+    } else if (service === 'spotify') {
+      card.classList.add('tone-spotify');
+      badge.textContent = 'Mirror';
+      badge.classList.add('ghost');
+      urlLabel.textContent = 'Spotify playlist/artist/album URL';
+      urlInput.placeholder = 'https://open.spotify.com/playlist/...';
+      helper.textContent = 'Uses YouTube as source and stores audio or video files in spotify folders.';
+      btn.textContent = 'Download Spotify list';
+      btn.className = 'btn-spotify';
+    }
+  });
+
   $('#refresh-stats')?.addEventListener('click', loadStats);
   $('#refresh-library')?.addEventListener('click', loadLibrary);
   $('#library-playlist-select')?.addEventListener('change', (e) => {
-    libraryState.selectedKey = e.target.value;
+    libraryState.selectedCategory = e.target.value;
+    libraryState.selectedSubfolder = 'all';
+    libraryState.visibleCount = LIBRARY_PAGE_SIZE;
+    renderLibrarySelector();
+    renderLibraryRows();
+  });
+  $('#library-subfolder-select')?.addEventListener('change', (e) => {
+    libraryState.selectedSubfolder = e.target.value;
     libraryState.visibleCount = LIBRARY_PAGE_SIZE;
     renderLibraryRows();
+  });
+  $('#library-sort-select')?.addEventListener('change', (e) => {
+    libraryState.selectedSort = e.target.value;
+    libraryState.visibleCount = LIBRARY_PAGE_SIZE;
+    renderLibraryRows();
+  });
+  $('#output-root')?.addEventListener('click', async () => {
+    try {
+      await fetch('/api/v1/files/open-root', { method: 'POST' });
+    } catch (e) {
+      console.error('Failed to open root:', e);
+    }
+  });
+  
+  $('#btn-open-logs')?.addEventListener('click', async () => {
+    try {
+      await fetch('/api/v1/system/open-logs', { method: 'POST' });
+    } catch (e) {
+      console.error('Failed to open logs:', e);
+    }
+  });
+  
+  $('#btn-update-core')?.addEventListener('click', async (e) => {
+    const btn = e.target;
+    btn.disabled = true;
+    btn.textContent = 'Updating...';
+    try {
+      const res = await fetch('/api/v1/system/update-core', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) {
+        if (data.details && data.details.includes('Requirement already satisfied')) {
+          alert('yt-dlp is already up to date!');
+          btn.textContent = 'Up to date';
+        } else {
+          alert('Successfully updated yt-dlp!\\n\\n' + data.details);
+          btn.textContent = 'Updated!';
+        }
+        setTimeout(() => { btn.textContent = 'Update yt-dlp'; btn.disabled = false; }, 3000);
+      } else {
+        alert('Update failed: ' + data.detail);
+        btn.textContent = 'Update Failed';
+        setTimeout(() => { btn.textContent = 'Update yt-dlp'; btn.disabled = false; }, 3000);
+      }
+    } catch (err) {
+      alert('Update error: ' + err);
+      btn.textContent = 'Update yt-dlp';
+      btn.disabled = false;
+    }
   });
   $('#library-load-more')?.addEventListener('click', () => {
     libraryState.visibleCount += LIBRARY_PAGE_SIZE;
@@ -1416,6 +1566,22 @@ function bindEvents() {
   $('#player-prev')?.addEventListener('click', playPreviousTrack);
   $('#player-next')?.addEventListener('click', playNextTrack);
   $('#player-toggle')?.addEventListener('click', togglePlayerPlayback);
+  $('#player-shuffle')?.addEventListener('click', () => {
+    if (!playerState.queue || playerState.queue.length === 0) return;
+    const current = playerState.currentTrack;
+    // Shuffle the remaining queue
+    playerState.queue.sort(() => Math.random() - 0.5);
+    // Move current track to start so it doesn't repeat immediately
+    if (current) {
+       const idx = playerState.queue.findIndex(t => t.path === current.path);
+       if (idx > -1) {
+         playerState.queue.splice(idx, 1);
+         playerState.queue.unshift(current);
+       }
+       playerState.currentIndex = 0;
+    }
+    playNextTrack();
+  });
   $('#player-seek')?.addEventListener('input', (event) => {
     const player = $('#audio-player');
     const currentTime = $('#player-current-time');
@@ -1478,9 +1644,7 @@ function bindEvents() {
     renderHistoryRows();
   });
 
-  $('#kind')?.addEventListener('change', () => toggleInputs('#kind', '#res-row', '#br-row'));
-  $('#pl-kind')?.addEventListener('change', () => toggleInputs('#pl-kind', '#pl-res-row', '#pl-br-row'));
-  $('#sp-kind')?.addEventListener('change', () => toggleInputs('#sp-kind', '#sp-res-row', '#sp-br-row'));
+  $('#unified-kind')?.addEventListener('change', () => toggleInputs('#unified-kind', '#unified-res-row', '#unified-br-row'));
 }
 
 async function init() {
@@ -1489,13 +1653,10 @@ async function init() {
   bindEvents();
   initSettings();
   initSettingsPopover();
-  toggleInputs('#kind', '#res-row', '#br-row');
-  toggleInputs('#pl-kind', '#pl-res-row', '#pl-br-row');
-  toggleInputs('#sp-kind', '#sp-res-row', '#sp-br-row');
+  toggleInputs('#unified-kind', '#unified-res-row', '#unified-br-row');
   renderStatus();
 
   await refreshData();
-  await loadSpotifyAuthStatus();
 
   if (settingsState.autoRefresh) scheduleAutoRefresh();
 }

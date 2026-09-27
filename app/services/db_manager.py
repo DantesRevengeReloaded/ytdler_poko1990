@@ -36,7 +36,7 @@ def get_total_size() -> float:
 def get_total_songs() -> float:
     ensure_tables()
     with get_cursor() as cur:
-        cur.execute("SELECT COALESCE(COUNT(*), 0) FROM downloaded_songs")
+        cur.execute("SELECT (SELECT COUNT(*) FROM downloaded_songs) + (SELECT COUNT(*) FROM spotify_downloads)")
         result = cur.fetchone()[0]
         return float(result or 0)
 

@@ -221,6 +221,36 @@ def _oembed_title(spotify_url: str) -> Optional[str]:
     return None
 
 
+def _get_tracks_from_embed(url: str) -> Tuple[List[Dict], str]:
+    """Scrape the Spotify embed widget to get actual tracks when the API restricts access."""
+    try:
+        resource_type, resource_id = extract_resource(url)
+        embed_url = f"https://open.spotify.com/embed/{resource_type}/{resource_id}"
+        r = requests.get(embed_url, headers={"User-Agent": "Mozilla/5.0"}, timeout=10)
+        m = re.search(r'<script id="__NEXT_DATA__" type="application/json">(.+?)</script>', r.text)
+        if not m:
+            return [], ""
+        data = json.loads(m.group(1))
+        entity = data.get("props", {}).get("pageProps", {}).get("state", {}).get("data", {}).get("entity", {})
+        title = entity.get("name") or entity.get("title") or "Spotify Playlist"
+        
+        track_list = entity.get("trackList", [])
+        tracks = []
+        for t in track_list:
+            tracks.append({
+                "title": t.get("title", "Unknown"),
+                "artist": t.get("subtitle", "Unknown"),
+                "album": None,
+                "spotify_url": None
+            })
+        if tracks:
+            logger.info(f"Embed fallback: found {len(tracks)} tracks for '{title}'")
+            return tracks, title
+    except Exception as e:
+        logger.warning(f"Embed fallback failed: {e}")
+    return [], ""
+
+
 def _ytmusic_tracks_for_query(query: str, max_items: int = 100) -> List[Dict]:
     """Search YouTube Music for a playlist matching query and return its tracks."""
     try:
@@ -524,24 +554,30 @@ def get_playlist_details(url: str) -> Dict:
         except SpotifyAPIError as e:
             if not _is_restricted_playlist_error(e):
                 raise
-            # Restricted playlist — try YouTube Music fallback
+            
+            # Restricted playlist — try Embed fallback first to get actual tracks
             oembed_title = _oembed_title(url) or f"spotify_playlist_{resource_id[:8]}"
-            logger.warning(
-                f"Spotify API blocked playlist '{oembed_title}' (restricted access). "
-                "Falling back to YouTube Music."
-            )
-            tracks, yt_title = _ytmusic_tracks_for_query(oembed_title)
+            tracks, yt_title = _get_tracks_from_embed(url)
+            
+            if not tracks:
+                # If embed fails, try YouTube Music fallback
+                logger.warning(
+                    f"Spotify API blocked playlist '{oembed_title}' (restricted access). "
+                    "Falling back to YouTube Music."
+                )
+                tracks, yt_title = _ytmusic_tracks_for_query(oembed_title)
+            
             if not tracks:
                 raise SpotifyAPIError(
                     f"Playlist '{oembed_title}' is blocked by Spotify API access restrictions and could not be read "
-                    "with the app's current auth mode. YouTube Music fallback also found no matching tracks. "
+                    "with the app's current auth mode. Fallbacks also found no matching tracks. "
                     "To avoid this for more playlists, connect a Spotify account through OAuth, configure an sp_dc cookie, "
                     "or apply for Extended Quota Mode on the Spotify Developer Dashboard."
                 )
             return {
                 "playlist_title": yt_title or oembed_title,
-                "description": f"YouTube Music fallback for restricted Spotify playlist '{oembed_title}'",
-                "owner": "Spotify restricted playlist (via YouTube Music)",
+                "description": f"Fallback for restricted Spotify playlist '{oembed_title}'",
+                "owner": "Spotify restricted playlist (via Fallback)",
                 "track_count": len(tracks),
                 "tracks": tracks,
                 "source_type": "playlist",
@@ -592,11 +628,14 @@ _VIDEO_EXTENSIONS = (".mp4", ".mkv", ".webm", ".avi", ".mov", ".m4v")
 
 
 def _yt_audio_opts(download_dir: str, bitrate: str | None) -> Dict:
+    import yt_dlp
     return {
         "outtmpl": os.path.join(download_dir, "%(title)s.%(ext)s"),
         "quiet": True,
         "noplaylist": True,
         "format": "bestaudio[ext!=mhtml]/bestaudio/best",
+        "max_filesize": 10 * 1024 * 1024, # 10MB max
+        "match_filter": yt_dlp.utils.match_filter_func("duration < 1200"),
         "postprocessors": [
             {
                 "key": "FFmpegExtractAudio",
@@ -622,11 +661,14 @@ def _yt_video_format(resolution: str | None) -> str:
 
 
 def _yt_video_opts(download_dir: str, resolution: str | None) -> Dict:
+    import yt_dlp
     return {
         "outtmpl": os.path.join(download_dir, "%(title)s.%(ext)s"),
         "quiet": True,
         "noplaylist": True,
         "format": _yt_video_format(resolution),
+        "max_filesize": 10 * 1024 * 1024, # 10MB max
+        "match_filter": yt_dlp.utils.match_filter_func("duration < 1200"),
     }
 
 
