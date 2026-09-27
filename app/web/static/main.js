@@ -127,11 +127,53 @@ function saveSettings() {
 }
 
 function applySettings() {
-  document.body.classList.toggle('theme-light', settingsState.theme === 'light');
+  const isLight = settingsState.theme === 'light';
+  document.body.classList.toggle('theme-light', isLight);
   document.body.classList.toggle('compact', settingsState.density === 'compact');
   document.body.classList.toggle('no-anim', !settingsState.animations || settingsState.reduceMotion);
+  
+  updateAmbientLayer();
+
   if (!settingsState.animations || settingsState.reduceMotion) {
     closeSettings();
+  }
+}
+
+function updateAmbientLayer() {
+  if (window.lightAnimInterval) clearInterval(window.lightAnimInterval);
+  const ambient = document.querySelector('.ambient-layer');
+  if (!ambient) return;
+  
+  const isLight = settingsState.theme === 'light';
+  if (isLight && settingsState.animations !== false && !settingsState.reduceMotion) {
+    ambient.style.display = 'block';
+    const srv = document.getElementById('service-type') ? document.getElementById('service-type').value : 'single';
+    let c1 = '77, 228, 255'; // default cyan
+    let c2 = '132, 112, 255'; // default purple
+    
+    if (srv === 'single') {
+      c1 = '50, 213, 131'; // green
+      c2 = '77, 228, 255'; // cyan
+    } else if (srv === 'playlist') {
+      c1 = '89, 183, 255'; // blue
+      c2 = '160, 120, 255'; // purple
+    } else if (srv === 'spotify') {
+      c1 = '29, 185, 84'; // spotify green
+      c2 = '50, 213, 131'; // light green
+    }
+    
+    let angle = 0;
+    window.lightAnimInterval = setInterval(() => {
+      angle = (angle + 0.2) % 360;
+      const x1 = 50 + 35 * Math.cos(angle * Math.PI / 180);
+      const y1 = 50 + 35 * Math.sin(angle * Math.PI / 180);
+      const x2 = 50 + 35 * Math.cos((angle + 180) * Math.PI / 180);
+      const y2 = 50 + 35 * Math.sin((angle + 180) * Math.PI / 180);
+      ambient.style.background = `radial-gradient(circle at ${x1}% ${y1}%, rgba(${c1}, 0.15), transparent 50%), radial-gradient(circle at ${x2}% ${y2}%, rgba(${c2}, 0.15), transparent 50%)`;
+    }, 50);
+  } else {
+    ambient.style.display = '';
+    ambient.style.background = '';
   }
 }
 
@@ -1291,9 +1333,13 @@ function formatPlaybackTime(totalSeconds) {
 function formatDate(iso) {
   if (!iso) return '-';
   try {
+    let dateStr = iso;
+    if (typeof iso === 'string' && iso.includes('T') && !iso.endsWith('Z') && !iso.match(/[+-]\d{2}:?\d{2}$/)) {
+      dateStr = iso + 'Z';
+    }
     const date = typeof iso === 'number'
       ? new Date(iso < 1e12 ? iso * 1000 : iso)
-      : new Date(iso);
+      : new Date(dateStr);
     if (Number.isNaN(date.getTime())) return String(iso);
     if (settingsState.timeFormat === 'exact') return date.toLocaleString();
     return formatRelativeDate(date);
@@ -1483,6 +1529,7 @@ function bindEvents() {
       btn.textContent = 'Download Spotify list';
       btn.className = 'btn-spotify';
     }
+    updateAmbientLayer();
   });
 
   $('#refresh-stats')?.addEventListener('click', loadStats);

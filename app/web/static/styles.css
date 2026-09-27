@@ -17,10 +17,173 @@
 }
 
 body.theme-light {
-  background: #e4e9f0;
+  --bg: #f2f5f9;
+  --panel: rgba(255, 255, 255, 0.85);
+  --text: #1a2233;
+  --muted: #596b82;
+  --stroke: rgba(0, 0, 0, 0.1);
+  --shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
+  
+  background: var(--bg) !important;
+  color: var(--text) !important;
 }
-body.theme-light .ambient-layer {
+
+body.theme-light .ambient-layer,
+body.theme-light .global-player::before {
   display: none !important;
+}
+
+body.theme-light .card-glass,
+body.theme-light .hero,
+body.theme-light .glass-panel,
+body.theme-light .settings-popover,
+body.theme-light .global-player {
+  background: var(--panel) !important;
+  border-color: var(--stroke) !important;
+  box-shadow: var(--shadow) !important;
+  color: var(--text) !important;
+}
+
+body.theme-light .input-base,
+body.theme-light select {
+  background: rgba(0, 0, 0, 0.03) !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  color: var(--text) !important;
+}
+
+body.theme-light .input-base::placeholder {
+  color: var(--muted) !important;
+}
+
+body.theme-light select option {
+  background: #ffffff;
+  color: #000000;
+}
+
+body.theme-light .hero-copy,
+body.theme-light .hero-kicker-note,
+body.theme-light .hero-eyebrow,
+body.theme-light .hero-utility-copy,
+body.theme-light .hero-note,
+body.theme-light .history-date,
+body.theme-light .progress-text,
+body.theme-light .status-text,
+body.theme-light .history-label,
+body.theme-light .muted,
+body.theme-light .file-size,
+body.theme-light .settings-popover-copy,
+body.theme-light .player-meta,
+body.theme-light .player-time,
+body.theme-light .stat-tile .label,
+body.theme-light .folder-item span,
+body.theme-light .summary-copy,
+body.theme-light .summary-label,
+body.theme-light .queue-row span {
+  color: var(--muted) !important;
+}
+
+body.theme-light h1,
+body.theme-light h2,
+body.theme-light h3,
+body.theme-light .hero-logo-frame,
+body.theme-light .settings-section-title,
+body.theme-light .player-title,
+body.theme-light .stat-tile .value,
+body.theme-light .folder-item strong,
+body.theme-light .queue-row strong,
+body.theme-light label {
+  color: var(--text) !important;
+}
+
+body.theme-light .history-row,
+body.theme-light .lib-row {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.2)) !important;
+  border-color: rgba(255, 255, 255, 0.8) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03), inset 0 1px 1px rgba(255, 255, 255, 1) !important;
+  backdrop-filter: blur(8px);
+}
+body.theme-light .history-row:hover,
+body.theme-light .lib-row.is-playable:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.4)) !important;
+  border-color: rgba(255, 255, 255, 1) !important;
+  box-shadow: 0 6px 16px rgba(0, 120, 255, 0.08), inset 0 1px 1px rgba(255, 255, 255, 1) !important;
+  transform: translateY(-1px);
+}
+body.theme-light .lib-row.is-active {
+  background: linear-gradient(135deg, rgba(240, 248, 255, 0.9), rgba(220, 240, 255, 0.6)) !important;
+  border-color: rgba(180, 220, 255, 1) !important;
+  box-shadow: 0 6px 16px rgba(0, 120, 255, 0.12), inset 0 1px 1px rgba(255, 255, 255, 1) !important;
+}
+
+body.theme-light .empty-state,
+body.theme-light .library-summary,
+body.theme-light .state-card,
+body.theme-light .stat-tile,
+body.theme-light .folder-item,
+body.theme-light .summary-block {
+  background: rgba(0, 0, 0, 0.02) !important;
+  border-color: rgba(0, 0, 0, 0.06) !important;
+  box-shadow: none !important;
+}
+body.theme-light .empty-state h4,
+body.theme-light .lib-name {
+  color: var(--text) !important;
+}
+
+body.theme-light .card-glass.tone-green {
+  border-color: rgba(50, 213, 131, 0.4) !important;
+  background: radial-gradient(circle at top left, rgba(50, 213, 131, 0.1), transparent 70%), var(--panel) !important;
+}
+body.theme-light .card-glass.tone-blue {
+  border-color: rgba(89, 183, 255, 0.4) !important;
+  background: radial-gradient(circle at top left, rgba(89, 183, 255, 0.1), transparent 70%), var(--panel) !important;
+}
+body.theme-light .card-glass.tone-amber {
+  border-color: rgba(245, 165, 36, 0.4) !important;
+  background: radial-gradient(circle at top left, rgba(245, 165, 36, 0.1), transparent 70%), var(--panel) !important;
+}
+body.theme-light .card-glass.tone-spotify {
+  border-color: rgba(29, 185, 84, 0.4) !important;
+  background: radial-gradient(circle at top left, rgba(29, 185, 84, 0.1), transparent 70%), var(--panel) !important;
+}
+
+body.theme-light .status-row {
+  background: rgba(0, 0, 0, 0.03) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+body.theme-light .progress {
+  background: rgba(0, 0, 0, 0.06) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+body.theme-light .status-pill,
+body.theme-light .badge {
+  background: rgba(0, 0, 0, 0.05) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+  color: var(--text) !important;
+}
+
+body.theme-light img[src$=".svg"],
+body.theme-light .icon-btn img {
+  filter: brightness(0.2) saturate(0) !important;
+}
+
+body.theme-light .btn-ghost {
+  color: var(--text) !important;
+}
+body.theme-light .btn-ghost:hover {
+  background: rgba(0, 0, 0, 0.06) !important;
+}
+
+body.theme-light .hero-action-pill {
+  background: linear-gradient(135deg, rgba(108, 229, 216, 0.4), rgba(71, 143, 255, 0.2)) !important;
+  border-color: rgba(108, 229, 216, 0.5) !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
+}
+body.theme-light .hero-action-pill:hover {
+  background: linear-gradient(135deg, rgba(108, 229, 216, 0.6), rgba(71, 143, 255, 0.3)) !important;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.1) !important;
 }
 
 body {
@@ -99,6 +262,12 @@ body {
   background:
     linear-gradient(160deg, rgba(16, 27, 43, 0.92), rgba(9, 14, 25, 0.94)),
     radial-gradient(circle at 18% 0%, rgba(93, 226, 208, 0.06), transparent 30%);
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease, border-color 0.4s ease;
+}
+.hero:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 24px 54px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(108, 229, 216, 0.3);
+  border-color: rgba(108, 229, 216, 0.4);
 }
 
 .hero::after {
@@ -146,19 +315,46 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 78px;
-  height: 78px;
-  border-radius: 24px;
+  width: 104px;
+  height: 104px;
+  border-radius: 32px;
   flex-shrink: 0;
-  background: radial-gradient(circle at 35% 30%, rgba(108, 229, 216, 0.18), rgba(108, 229, 216, 0.02) 70%);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+  background: radial-gradient(circle at 35% 30%, rgba(108, 229, 216, 0.22), rgba(108, 229, 216, 0.05) 70%);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.38), 0 0 20px rgba(108, 229, 216, 0.15);
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-logo-frame::after {
+  content: "";
+  position: absolute;
+  top: 0; left: -150%; width: 50%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+  transform: skewX(-20deg);
+  transition: none;
+}
+
+.hero:hover .hero-logo-frame::after {
+  left: 200%;
+  transition: left 0.7s ease-in-out;
+}
+
+.hero:hover .hero-logo-frame {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 22px 48px rgba(0, 0, 0, 0.45), 0 0 32px rgba(108, 229, 216, 0.3);
 }
 
 .hero-logo {
-  width: 64px;
-  height: 64px;
-  border-radius: 18px;
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.24);
+  width: 86px;
+  height: 86px;
+  border-radius: 24px;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+  transition: transform 0.4s ease;
+}
+
+.hero:hover .hero-logo {
+  transform: scale(1.05);
 }
 
 .hero-kicker {
@@ -210,11 +406,11 @@ body {
 }
 
 .hero-utility {
-  display: grid;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
   gap: 14px;
-  justify-self: end;
-  width: auto;
-  min-width: 440px;
   padding-left: 24px;
   border-left: 1px solid rgba(152, 181, 220, 0.14);
 }
@@ -263,7 +459,17 @@ body {
 .hero-action-pill {
   min-height: 50px;
   border-radius: 14px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  background: linear-gradient(135deg, rgba(108, 229, 216, 0.12), rgba(71, 143, 255, 0.05)) !important;
+  border: 1px solid rgba(108, 229, 216, 0.25) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 4px 12px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(8px);
+  transition: all 0.3s ease;
+}
+.hero-action-pill:hover {
+  background: linear-gradient(135deg, rgba(108, 229, 216, 0.22), rgba(71, 143, 255, 0.12)) !important;
+  border-color: rgba(108, 229, 216, 0.5) !important;
+  transform: translateY(-2px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
 .hero-status-pill {
@@ -1161,13 +1367,14 @@ body.compact .summary-block { padding: 13px; }
     align-items: flex-start;
   }
   .hero-logo-frame {
-    width: 62px;
-    height: 62px;
-    border-radius: 16px;
+    width: 76px;
+    height: 76px;
+    border-radius: 22px;
   }
   .hero-logo {
-    width: 50px;
-    height: 50px;
+    width: 62px;
+    height: 62px;
+    border-radius: 18px;
   }
   .hero-copy {
     font-size: 0.95rem;
